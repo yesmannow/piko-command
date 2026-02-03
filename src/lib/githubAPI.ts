@@ -1,25 +1,16 @@
-interface GitHubCredentials {
-  githubToken: string
-  githubRepo: string
-  githubOwner: string
-}
+import { Octokit } from 'octokit'
 
 export interface TrackData {
   id: string
   title: string
   artist: string
   releaseDate: string
-  status: 'live' | 'draft' | 'scheduled'
+  status: string
   r2: {
     audioUrl: string
     coverImageUrl?: string
   }
-  social?: {
-    youTubePostId?: string
-    facebookPostId?: string
-    twitterPostUrl?: string
-  }
-  stats?: {
+  stats: {
     shares: number
     fireEmojis: number
     comments: number
@@ -27,80 +18,56 @@ export interface TrackData {
   }
 }
 
-export async function updateTracksJSON(
-  trackData: TrackData,
-  credentials: GitHubCredentials
-): Promise<boolean> {
-  const filePath = 'tracks.json'
-  const repoUrl = `https://api.github.com/repos/${credentials.githubOwner}/${credentials.githubRepo}/contents/${filePath}`
-
-  let currentSHA = ''
-  let currentTracks: TrackData[] = []
-
-  try {
-    const getResponse = await fetch(repoUrl, {
-      headers: {
-        'Authorization': `Bearer ${credentials.githubToken}`,
-        'Accept': 'application/vnd.github.v3+json'
-      }
-    })
-
-    if (getResponse.ok) {
-      const data = await getResponse.json()
-      currentSHA = data.sha
-      const content = atob(data.content)
-      currentTracks = JSON.parse(content)
-    }
-  } catch (error) {
-    currentTracks = []
-  }
-
-  currentTracks.unshift(trackData)
-
-  const newContent = btoa(JSON.stringify(currentTracks, null, 2))
-
-  const updateResponse = await fetch(repoUrl, {
-    method: 'PUT',
-    headers: {
-      'Authorization': `Bearer ${credentials.githubToken}`,
-      'Accept': 'application/vnd.github.v3+json',
-      'Content-Type': 'application/json'
-    },
-    body: JSON.stringify({
-      message: `CI(app): Add new track ${trackData.title}`,
-      content: newContent,
-      sha: currentSHA || undefined
-    })
-  })
-
-  if (!updateResponse.ok) {
-    throw new Error(`GitHub update failed: ${updateResponse.statusText}`)
-  }
-
-  return true
+interface GitHubCredentials {
+  githubToken: string
+  githubRepo: string
+  githubOwner: string
 }
 
-export async function fetchTracksJSON(
+export async function updateTracksJSON(
+  newTrack: TrackData,
   credentials: GitHubCredentials
-): Promise<TrackData[]> {
-  const filePath = 'tracks.json'
-  const repoUrl = `https://api.github.com/repos/${credentials.githubOwner}/${credentials.githubRepo}/contents/${filePath}`
-
-  const response = await fetch(repoUrl, {
-    headers: {
-      'Authorization': `Bearer ${credentials.githubToken}`,
-      'Accept': 'application/vnd.github.v3+json'
-    }
+): Promise<void> {
+  const octokit = new Octokit({
+    auth: credentials.githubToken,
   })
 
-  if (!response.ok) {
-    if (response.status === 404) {
-      return []
+  const tracksPath = 'public/data/tracks.json'
+
+  let existingContent: any[] = []
+  let sha: string | undefined
+
+  try {
+    const { data: fileData } = await octokit.rest.repos.getContent({
+      owner: credentials.githubOwner,
+      repo: credentials.githubRepo,
+      path: tracksPath,
+    })
+
+    if ('content' in fileData) {
+      const content = Buffer.from(fileData.content, 'base64').toString('utf-8')
+      existingContent = JSON.parse(content)
+      sha = fileData.sha
     }
-    throw new Error(`GitHub API error: ${response.statusText}`)
+  } catch (error: any) {
+    if (error.status === 404) {
+      existingContent = []
+    } else {
+      throw error
+    }
   }
 
-  const data = await response.json()
-  const content = atob(data.content)
-  return JSON.parse(content) as TrackData[]
+  existingContent.unshift(newTrack)
+
+  const updatedContent = JSON.stringify(existingContent, null, 2)
+  const encodedContent = Buffer.from(updatedContent).toString('base64')
+
+  await octokit.rest.repos.createOrUpdateFileContents({
+    owner: credentials.githubOwner,
+    repo: credentials.githubRepo,
+    path: tracksPath,
+    message: `Add new track: ${newTrack.title}`,
+    content: encodedContent,
+    sha,
+  })
 }

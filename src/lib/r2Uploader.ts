@@ -1,20 +1,26 @@
-import { S3Client, PutObjectCommand } from "@aws-sdk/client-s3"
+import { S3Client, PutObjectCommand } from '@aws-sdk/client-s3'
 
-interface VaultCredentials {
+interface R2Credentials {
   r2AccessKey: string
   r2SecretKey: string
   r2BucketName: string
   r2AccountId: string
 }
 
-export async function uploadToR2(
-  file: File,
-  credentials: VaultCredentials,
-  prefix: string,
-  onProgress?: (progress: number) => void
-): Promise<string> {
-  const r2Client = new S3Client({
-    region: "auto",
+interface UploadResult {
+  audioUrl: string
+  coverImageUrl?: string
+}
+
+export async function uploadConcurrent(
+  audioFile: File,
+  coverImageFile: File | null,
+  credentials: R2Credentials,
+  audioProgressCallback?: (progress: number) => void,
+  coverProgressCallback?: (progress: number) => void
+): Promise<UploadResult> {
+  const s3Client = new S3Client({
+    region: 'auto',
     endpoint: `https://${credentials.r2AccountId}.r2.cloudflarestorage.com`,
     credentials: {
       accessKeyId: credentials.r2AccessKey,
@@ -22,50 +28,85 @@ export async function uploadToR2(
     },
   })
 
-  const cleanFileName = file.name.replace(/[^a-zA-Z0-9.-]/g, '_')
-  const fileName = `${prefix}/${Date.now()}-${cleanFileName}`
-
-  const fileBuffer = await file.arrayBuffer()
-
-  const command = new PutObjectCommand({
-    Bucket: credentials.r2BucketName,
-    Key: fileName,
-    Body: new Uint8Array(fileBuffer),
-    ContentType: file.type,
-  })
-
-  await r2Client.send(command)
-
-  if (onProgress) {
-    onProgress(100)
+  const timestamp = Date.now()
+  const sanitizeFilename = (filename: string) => {
+    return filename.replace(/[^a-zA-Z0-9.-]/g, '_')
   }
 
-  return `https://pub-${credentials.r2AccountId}.r2.dev/${fileName}`
-}
+  const audioFilename = `${timestamp}_${sanitizeFilename(audioFile.name)}`
+  const audioKey = `tracks/${audioFilename}`
 
-export async function uploadConcurrent(
-  audioFile: File | null,
-  coverImage: File | null,
-  credentials: VaultCredentials,
-  onAudioProgress?: (progress: number) => void,
-  onCoverProgress?: (progress: number) => void
-): Promise<{ audioUrl: string; coverImageUrl?: string }> {
-  const uploadPromises: Promise<string>[] = []
+  const uploadPromises: Promise<any>[] = []
 
-  if (audioFile) {
-    uploadPromises.push(uploadToR2(audioFile, credentials, 'tracks', onAudioProgress))
-  } else {
-    throw new Error('Audio file is required')
+  const audioUploadPromise = (async () => {
+    const audioBuffer = await audioFile.arrayBuffer()
+    
+    if (audioProgressCallback) {
+      audioProgressCallback(30)
+    }
+
+    const audioCommand = new PutObjectCommand({
+      Bucket: credentials.r2BucketName,
+      Key: audioKey,
+      Body: new Uint8Array(audioBuffer),
+      ContentType: audioFile.type,
+    })
+
+    if (audioProgressCallback) {
+      audioProgressCallback(60)
+    }
+
+    await s3Client.send(audioCommand)
+
+    if (audioProgressCallback) {
+      audioProgressCallback(100)
+    }
+
+    return `https://${credentials.r2BucketName}.${credentials.r2AccountId}.r2.cloudflarestorage.com/${audioKey}`
+  })()
+
+  uploadPromises.push(audioUploadPromise)
+
+  let coverUploadPromise: Promise<string | undefined> = Promise.resolve(undefined)
+
+  if (coverImageFile) {
+    coverUploadPromise = (async () => {
+      const coverFilename = `${timestamp}_${sanitizeFilename(coverImageFile.name)}`
+      const coverKey = `covers/${coverFilename}`
+
+      const coverBuffer = await coverImageFile.arrayBuffer()
+
+      if (coverProgressCallback) {
+        coverProgressCallback(30)
+      }
+
+      const coverCommand = new PutObjectCommand({
+        Bucket: credentials.r2BucketName,
+        Key: coverKey,
+        Body: new Uint8Array(coverBuffer),
+        ContentType: coverImageFile.type,
+      })
+
+      if (coverProgressCallback) {
+        coverProgressCallback(60)
+      }
+
+      await s3Client.send(coverCommand)
+
+      if (coverProgressCallback) {
+        coverProgressCallback(100)
+      }
+
+      return `https://${credentials.r2BucketName}.${credentials.r2AccountId}.r2.cloudflarestorage.com/${coverKey}`
+    })()
+
+    uploadPromises.push(coverUploadPromise)
   }
 
-  if (coverImage) {
-    uploadPromises.push(uploadToR2(coverImage, credentials, 'covers', onCoverProgress))
-  }
-
-  const results = await Promise.all(uploadPromises)
+  const [audioUrl, coverImageUrl] = await Promise.all([audioUploadPromise, coverUploadPromise])
 
   return {
-    audioUrl: results[0],
-    coverImageUrl: results.length > 1 ? results[1] : undefined,
+    audioUrl,
+    coverImageUrl,
   }
 }

@@ -276,29 +276,23 @@
 }
 
 @keyframes glitch {
-  0%, 100% {
-    text-shadow: 
-      2px 2px 0 oklch(0.75 0.25 330),
-      -2px -2px 0 oklch(0.70 0.28 195);
+  0% { 
+    transform: translate(0); 
+    clip-path: inset(40% 0 61% 0); 
   }
-  25% {
-    text-shadow: 
-      -2px 2px 0 oklch(0.70 0.28 195),
-      2px -2px 0 oklch(0.78 0.26 75);
+  20% { 
+    transform: translate(-3px, 3px); 
   }
-  50% {
-    text-shadow: 
-      2px -2px 0 oklch(0.75 0.25 330),
-      -2px 2px 0 oklch(0.72 0.26 290);
+  40% { 
+    transform: translate(-3px, -3px); 
+    clip-path: inset(10% 0 80% 0); 
   }
-  75% {
-    text-shadow: 
-      -2px -2px 0 oklch(0.78 0.26 75),
-      2px 2px 0 oklch(0.70 0.28 195);
+  100% { 
+    transform: translate(0); 
   }
 }
 
-.glitch-text {
+.glitch-hover {
   background: linear-gradient(
     135deg,
     oklch(0.68 0.24 120),
@@ -309,10 +303,51 @@
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   position: relative;
+  display: inline-block;
 }
 
-.glitch-text:hover {
-  animation: glitch 0.3s ease-in-out;
+.glitch-hover::before,
+.glitch-hover::after {
+  content: attr(data-text);
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.glitch-hover:hover::before {
+  opacity: 0.8;
+  animation: glitch 0.3s infinite;
+  left: -2px;
+  text-shadow: 2px 0 #bef264;
+  background: linear-gradient(
+    135deg,
+    oklch(0.68 0.24 120),
+    oklch(0.75 0.25 330),
+    oklch(0.70 0.28 195)
+  );
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.glitch-hover:hover::after {
+  opacity: 0.8;
+  animation: glitch 0.3s infinite reverse;
+  left: 2px;
+  text-shadow: -2px 0 #6366f1;
+  background: linear-gradient(
+    135deg,
+    oklch(0.68 0.24 120),
+    oklch(0.75 0.25 330),
+    oklch(0.70 0.28 195)
+  );
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
 }
 
 .bento-grid {

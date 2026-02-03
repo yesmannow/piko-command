@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useKV } from '@github/spark/hooks'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -7,11 +7,12 @@ import { Label } from '@/components/ui/label'
 import { Badge } from '@/components/ui/badge'
 import { Progress } from '@/components/ui/progress'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { Input } from '@/components/ui/input'
+import { Alert, AlertDescription } from '@/components/ui/alert'
 import { toast } from 'sonner'
 import confetti from 'canvas-confetti'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
-  Youtube,
   Zap,
   Sparkles,
   Send,
@@ -19,12 +20,22 @@ import {
   Video,
   Hash,
   TrendingUp,
-  Play,
   Loader2,
   Copy,
-  ExternalLink
+  ExternalLink,
+  Upload,
+  Music,
+  CheckCircle,
+  AlertCircle,
+  Database,
+  Github,
+  Settings,
+  X
 } from 'lucide-react'
 import { YouTubeVault } from '@/components/YouTubeVault'
+import { VaultSettings } from '@/components/VaultSettings'
+import { uploadConcurrent } from '@/lib/r2Uploader'
+import { updateTracksJSON, type TrackData } from '@/lib/githubAPI'
 
 interface PostHistory {
   id: string
@@ -40,18 +51,71 @@ interface CaptionVariant {
   viral: string
 }
 
+interface VaultCredentials {
+  r2AccessKey: string
+  r2SecretKey: string
+  r2BucketName: string
+  r2AccountId: string
+  githubToken: string
+  githubRepo: string
+  githubOwner: string
+}
+
+interface TrackMetadata {
+  title: string
+  artist: string
+  releaseDate: string
+}
+
+interface UploadedTrack {
+  id: string
+  title: string
+  artist: string
+  audioUrl: string
+  coverImageUrl?: string
+  releaseDate?: string
+  uploadedAt: number
+}
+
 const PIKO_WEBSITE = 'https://piko-artist-website.vercel.app'
 
 function App() {
   const [caption, setCaption] = useState('')
   const [platforms, setPlatforms] = useState<string[]>(['instagram', 'tiktok', 'twitter'])
   const [postHistory, setPostHistory] = useKV<PostHistory[]>('piko_post_history', [])
+  const [credentials] = useKV<VaultCredentials>('vault-credentials', {
+    r2AccessKey: '',
+    r2SecretKey: '',
+    r2BucketName: '',
+    r2AccountId: '',
+    githubToken: '',
+    githubRepo: '',
+    githubOwner: ''
+  })
+  const [uploadedTracks, setUploadedTracks] = useKV<UploadedTrack[]>('uploaded-tracks', [])
+  
   const [isPosting, setIsPosting] = useState(false)
   const [isGenerating, setIsGenerating] = useState(false)
   const [generatedCaptions, setGeneratedCaptions] = useState<CaptionVariant | null>(null)
   const [showCaptionDialog, setShowCaptionDialog] = useState(false)
-  const [currentView, setCurrentView] = useState<'composer' | 'history'>('composer')
+  const [currentView, setCurrentView] = useState<'composer' | 'history' | 'studio' | 'vault'>('composer')
   const [stats, setStats] = useState({ posts: 0, platforms: 0, engagement: 0 })
+
+  const [selectedAudioFile, setSelectedAudioFile] = useState<File | null>(null)
+  const [selectedCoverImage, setSelectedCoverImage] = useState<File | null>(null)
+  const [coverPreview, setCoverPreview] = useState<string | null>(null)
+  const [metadata, setMetadata] = useState<TrackMetadata>({
+    title: '',
+    artist: 'PIKO',
+    releaseDate: new Date().toISOString().split('T')[0]
+  })
+  const [audioUploadProgress, setAudioUploadProgress] = useState(0)
+  const [coverUploadProgress, setCoverUploadProgress] = useState(0)
+  const [isUploading, setIsUploading] = useState(false)
+  const [uploadStatus, setUploadStatus] = useState<'idle' | 'uploading' | 'syncing' | 'success' | 'error'>('idle')
+  const [uploadStage, setUploadStage] = useState<string>('')
+  const audioFileInputRef = useRef<HTMLInputElement>(null)
+  const coverImageInputRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => {
     if (postHistory) {
@@ -63,6 +127,19 @@ function App() {
       })
     }
   }, [postHistory])
+
+  const validateCredentials = () => {
+    if (!credentials) return false
+    return !!(
+      credentials.r2AccessKey &&
+      credentials.r2SecretKey &&
+      credentials.r2BucketName &&
+      credentials.r2AccountId &&
+      credentials.githubToken &&
+      credentials.githubRepo &&
+      credentials.githubOwner
+    )
+  }
 
   const handleQuickShare = (videoUrl: string, videoTitle: string) => {
     const starterCaption = `🔥 ${videoTitle}\n\n${videoUrl}`
@@ -93,11 +170,11 @@ INPUT: ${caption}
 
 Generate exactly 3 caption styles optimized for different platforms. Return a JSON object with these exact keys:
 
-1. "hype": Street-level energy, heavy on emojis (🔥, 💿, 🚀). Focus on excitement and energy. Include #PikoMusic #NewHipHop #YouTubeMusic
-2. "promo": Clean, professional, call-to-action focused. Clear message with strong CTA. Include relevant hashtags.
+1. "hype": Street-level energy, heavy on emojis (🔥, 💿, 🚀). Focus on excitement and energy. Include #PikoMusic #NewHipHop #YouTubeMusic. Keep under 200 characters.
+2. "promo": Clean, professional, call-to-action focused. Clear message with strong CTA. Include relevant hashtags. Keep under 200 characters.
 3. "viral": Short, punchy, designed for TikTok/X. Maximum engagement focus. Under 150 characters.
 
-Voice: Authentic, Street, Technical, Energetic. Keep captions under 200 characters except viral which should be under 150.`
+Voice: Authentic, Street, Technical, Energetic.`
 
       const response = await window.spark.llm(promptText, 'gpt-4o-mini', true)
       const result = JSON.parse(response)
@@ -206,6 +283,166 @@ Voice: Authentic, Street, Technical, Energetic. Keep captions under 200 characte
     }
   }
 
+  const handleAudioFileSelect = (files: FileList | null) => {
+    if (!files || files.length === 0) return
+
+    const file = files[0]
+    if (!file.type.startsWith('audio/')) {
+      toast.error('Please upload an audio file')
+      return
+    }
+
+    setSelectedAudioFile(file)
+    if (!metadata.title) {
+      const fileName = file.name.replace(/\.[^/.]+$/, '')
+      setMetadata(prev => ({ ...prev, title: fileName }))
+    }
+  }
+
+  const handleCoverImageSelect = (files: FileList | null) => {
+    if (!files || files.length === 0) return
+
+    const file = files[0]
+    if (!file.type.startsWith('image/')) {
+      toast.error('Please upload an image file')
+      return
+    }
+
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error('Image too large (max 5MB)')
+      return
+    }
+
+    if (coverPreview) {
+      URL.revokeObjectURL(coverPreview)
+    }
+
+    const preview = URL.createObjectURL(file)
+    setSelectedCoverImage(file)
+    setCoverPreview(preview)
+  }
+
+  const removeCoverImage = () => {
+    if (coverPreview) {
+      URL.revokeObjectURL(coverPreview)
+    }
+    setSelectedCoverImage(null)
+    setCoverPreview(null)
+  }
+
+  const handleUpload = async () => {
+    if (!selectedAudioFile) {
+      toast.error('Select an audio file first')
+      return
+    }
+
+    if (!metadata.title.trim()) {
+      toast.error('Enter a track title')
+      return
+    }
+
+    if (!validateCredentials()) {
+      toast.error('Configure vault credentials first!')
+      return
+    }
+
+    setIsUploading(true)
+    setUploadStatus('uploading')
+    setAudioUploadProgress(0)
+    setCoverUploadProgress(0)
+
+    try {
+      setUploadStage('Uploading files to R2...')
+      
+      const { audioUrl, coverImageUrl } = await uploadConcurrent(
+        selectedAudioFile,
+        selectedCoverImage,
+        {
+          r2AccessKey: credentials!.r2AccessKey,
+          r2SecretKey: credentials!.r2SecretKey,
+          r2BucketName: credentials!.r2BucketName,
+          r2AccountId: credentials!.r2AccountId,
+        },
+        (progress) => setAudioUploadProgress(progress),
+        (progress) => setCoverUploadProgress(progress)
+      )
+      
+      setUploadStatus('syncing')
+      setUploadStage('Syncing to GitHub...')
+
+      const trackData: TrackData = {
+        id: `track-${Date.now()}`,
+        title: metadata.title,
+        artist: metadata.artist,
+        releaseDate: metadata.releaseDate,
+        status: 'live',
+        r2: {
+          audioUrl,
+          coverImageUrl,
+        },
+        stats: {
+          shares: 0,
+          fireEmojis: 0,
+          comments: 0,
+          engagementRate: '0%'
+        }
+      }
+
+      await updateTracksJSON(trackData, {
+        githubToken: credentials!.githubToken,
+        githubRepo: credentials!.githubRepo,
+        githubOwner: credentials!.githubOwner,
+      })
+      
+      setUploadStatus('success')
+      setUploadStage('Complete!')
+
+      const uploadedTrack: UploadedTrack = {
+        id: trackData.id,
+        title: trackData.title,
+        artist: trackData.artist,
+        audioUrl: trackData.r2.audioUrl,
+        coverImageUrl: trackData.r2.coverImageUrl,
+        releaseDate: trackData.releaseDate,
+        uploadedAt: Date.now()
+      }
+
+      setUploadedTracks((currentTracks) => [uploadedTrack, ...(currentTracks || [])])
+
+      confetti({
+        particleCount: 150,
+        spread: 100,
+        origin: { y: 0.6 },
+        colors: ['#ff00ff', '#00ffff', '#ff3366', '#ffffff']
+      })
+
+      toast.success(`${metadata.title} uploaded and synced!`)
+      
+      setSelectedAudioFile(null)
+      setSelectedCoverImage(null)
+      if (coverPreview) {
+        URL.revokeObjectURL(coverPreview)
+      }
+      setCoverPreview(null)
+      setMetadata({ title: '', artist: 'PIKO', releaseDate: new Date().toISOString().split('T')[0] })
+      setAudioUploadProgress(0)
+      setCoverUploadProgress(0)
+
+      setTimeout(() => {
+        setUploadStatus('idle')
+        setUploadStage('')
+      }, 3000)
+    } catch (error) {
+      setUploadStatus('error')
+      setUploadStage('Upload failed')
+      toast.error(`Upload failed: ${error instanceof Error ? error.message : 'Unknown error'}`)
+      setAudioUploadProgress(0)
+      setCoverUploadProgress(0)
+    } finally {
+      setIsUploading(false)
+    }
+  }
+
   const characterCount = caption.length
   const characterLimit = 2200
 
@@ -215,11 +452,14 @@ Voice: Authentic, Street, Technical, Energetic. Keep captions under 200 characte
         <div className="max-w-[1920px] mx-auto px-4 md:px-6 py-4">
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-4xl md:text-6xl font-black uppercase tracking-wider glitch-text">
+              <h1 
+                className="text-4xl md:text-6xl font-black uppercase tracking-wider glitch-hover cursor-pointer"
+                data-text="PIKO COMMAND"
+              >
                 PIKO COMMAND
               </h1>
               <p className="text-xs text-zinc-500 uppercase tracking-widest font-bold mt-1">
-                100% Free · Browser-Intent Distribution
+                Studio-to-Social · R2 Cloud · GitHub Sync · Zero-Cost Distribution
               </p>
             </div>
             <div className="flex items-center gap-3">
@@ -245,6 +485,30 @@ Voice: Authentic, Street, Technical, Energetic. Keep captions under 200 characte
           >
             <Zap className="w-4 h-4 mr-2" />
             LAUNCHPAD
+          </Button>
+          <Button
+            variant={currentView === 'studio' ? 'default' : 'outline'}
+            onClick={() => setCurrentView('studio')}
+            className={
+              currentView === 'studio'
+                ? 'bg-lime-400 hover:bg-lime-500 text-zinc-950 font-black uppercase tracking-wider border-2 border-lime-400 shadow-lg shadow-lime-400/30 active:scale-95 transition-all'
+                : 'border-2 border-zinc-700 hover:border-lime-500/50 hover:bg-lime-500/10 font-bold uppercase tracking-wide active:scale-95 transition-all'
+            }
+          >
+            <Upload className="w-4 h-4 mr-2" />
+            STUDIO
+          </Button>
+          <Button
+            variant={currentView === 'vault' ? 'default' : 'outline'}
+            onClick={() => setCurrentView('vault')}
+            className={
+              currentView === 'vault'
+                ? 'bg-lime-400 hover:bg-lime-500 text-zinc-950 font-black uppercase tracking-wider border-2 border-lime-400 shadow-lg shadow-lime-400/30 active:scale-95 transition-all'
+                : 'border-2 border-zinc-700 hover:border-lime-500/50 hover:bg-lime-500/10 font-bold uppercase tracking-wide active:scale-95 transition-all'
+            }
+          >
+            <Database className="w-4 h-4 mr-2" />
+            THE VAULT
           </Button>
           <Button
             variant={currentView === 'history' ? 'default' : 'outline'}
@@ -412,10 +676,10 @@ Voice: Authentic, Street, Technical, Energetic. Keep captions under 200 characte
                     <Tabs defaultValue="hype" className="w-full">
                       <TabsList className="grid w-full grid-cols-3 bg-zinc-900/50 border-2 border-zinc-800">
                         <TabsTrigger value="hype" className="font-bold uppercase text-xs data-[state=active]:bg-lime-400 data-[state=active]:text-zinc-950">
-                          HYPE
+                          STREET HYPE
                         </TabsTrigger>
                         <TabsTrigger value="promo" className="font-bold uppercase text-xs data-[state=active]:bg-lime-400 data-[state=active]:text-zinc-950">
-                          PROMO
+                          OFFICIAL PROMO
                         </TabsTrigger>
                         <TabsTrigger value="viral" className="font-bold uppercase text-xs data-[state=active]:bg-lime-400 data-[state=active]:text-zinc-950">
                           VIRAL
@@ -479,6 +743,301 @@ Voice: Authentic, Street, Technical, Energetic. Keep captions under 200 characte
                   </div>
                 </CardContent>
               </Card>
+            </motion.div>
+          )}
+
+          {currentView === 'studio' && (
+            <motion.div
+              key="studio"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+              transition={{ duration: 0.2 }}
+              className="space-y-6"
+            >
+              {!validateCredentials() && (
+                <Alert className="border-2 border-yellow-500/50 bg-yellow-500/10">
+                  <AlertCircle className="w-5 h-5 text-yellow-400" />
+                  <AlertDescription className="text-yellow-400 font-bold flex items-center justify-between">
+                    <span>Configure R2 and GitHub credentials in THE VAULT tab first.</span>
+                    <Settings className="w-4 h-4" />
+                  </AlertDescription>
+                </Alert>
+              )}
+
+              <Card className="border-2 border-zinc-800 bg-zinc-950/90 backdrop-blur-xl shadow-2xl">
+                <CardHeader className="border-b border-zinc-800/50">
+                  <CardTitle className="text-2xl uppercase tracking-wider font-black flex items-center gap-3">
+                    <Upload className="w-7 h-7 text-lime-400" />
+                    <span className="bg-gradient-to-r from-lime-400 to-emerald-400 bg-clip-text text-transparent">
+                      STUDIO-TO-WEB UPLOAD
+                    </span>
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="p-6 space-y-4">
+                  <div className="relative border-2 border-dashed border-zinc-700 hover:border-lime-500/50 rounded transition-all p-8">
+                    <input
+                      ref={audioFileInputRef}
+                      type="file"
+                      accept="audio/*"
+                      onChange={(e) => handleAudioFileSelect(e.target.files)}
+                      className="hidden"
+                      id="track-upload"
+                    />
+
+                    {!selectedAudioFile ? (
+                      <label
+                        htmlFor="track-upload"
+                        className="flex flex-col items-center justify-center cursor-pointer group"
+                      >
+                        <div className="w-16 h-16 rounded-full bg-zinc-900 flex items-center justify-center mb-4 group-hover:bg-lime-500/20 group-hover:scale-110 transition-all">
+                          <Music className="w-8 h-8 text-zinc-600 group-hover:text-lime-400 transition-colors" />
+                        </div>
+                        <p className="text-base font-black text-zinc-100 mb-2 uppercase tracking-wide">
+                          Select Track File
+                        </p>
+                        <p className="text-sm text-zinc-500">
+                          MP3, WAV, FLAC, or any audio format
+                        </p>
+                      </label>
+                    ) : (
+                      <div className="flex items-center gap-4">
+                        <div className="w-12 h-12 rounded bg-lime-500/20 flex items-center justify-center">
+                          <Music className="w-6 h-6 text-lime-400" />
+                        </div>
+                        <div className="flex-1">
+                          <p className="font-bold text-zinc-100">{selectedAudioFile.name}</p>
+                          <p className="text-sm text-zinc-500">
+                            {(selectedAudioFile.size / (1024 * 1024)).toFixed(2)} MB
+                          </p>
+                        </div>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => setSelectedAudioFile(null)}
+                          disabled={isUploading}
+                        >
+                          Change
+                        </Button>
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="relative border-2 border-dashed border-zinc-700 hover:border-emerald-500/50 rounded transition-all p-6">
+                    <input
+                      ref={coverImageInputRef}
+                      type="file"
+                      accept="image/*"
+                      onChange={(e) => handleCoverImageSelect(e.target.files)}
+                      className="hidden"
+                      id="cover-upload"
+                    />
+
+                    {!selectedCoverImage ? (
+                      <label
+                        htmlFor="cover-upload"
+                        className="flex flex-col items-center justify-center cursor-pointer group"
+                      >
+                        <div className="w-12 h-12 rounded-full bg-zinc-900 flex items-center justify-center mb-3 group-hover:bg-emerald-500/20 group-hover:scale-110 transition-all">
+                          <ImageIcon className="w-6 h-6 text-zinc-600 group-hover:text-emerald-400 transition-colors" />
+                        </div>
+                        <p className="text-sm font-black text-zinc-100 mb-1 uppercase tracking-wide">
+                          Featured Cover Art (Optional)
+                        </p>
+                        <p className="text-xs text-zinc-500">
+                          JPG, PNG, or WEBP • Max 5MB
+                        </p>
+                      </label>
+                    ) : (
+                      <div className="flex items-center gap-4">
+                        {coverPreview && (
+                          <div className="w-16 h-16 rounded overflow-hidden border border-zinc-700">
+                            <img src={coverPreview} alt="Cover preview" className="w-full h-full object-cover" />
+                          </div>
+                        )}
+                        <div className="flex-1">
+                          <p className="font-bold text-zinc-100 text-sm">{selectedCoverImage.name}</p>
+                          <p className="text-xs text-zinc-500">
+                            {(selectedCoverImage.size / (1024 * 1024)).toFixed(2)} MB
+                          </p>
+                        </div>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={removeCoverImage}
+                          disabled={isUploading}
+                        >
+                          <X className="w-4 h-4" />
+                        </Button>
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label className="text-xs uppercase tracking-widest font-black text-zinc-400">Track Title</Label>
+                    <Input
+                      value={metadata.title}
+                      onChange={(e) => setMetadata(prev => ({ ...prev, title: e.target.value }))}
+                      placeholder="Enter track name..."
+                      className="bg-zinc-950 border-zinc-700 focus:border-lime-500 font-medium"
+                      disabled={isUploading}
+                    />
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label className="text-xs uppercase tracking-widest font-black text-zinc-400">Artist</Label>
+                      <Input
+                        value={metadata.artist}
+                        onChange={(e) => setMetadata(prev => ({ ...prev, artist: e.target.value }))}
+                        placeholder="Artist name"
+                        className="bg-zinc-950 border-zinc-700 focus:border-lime-500 font-medium"
+                        disabled={isUploading}
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label className="text-xs uppercase tracking-widest font-black text-zinc-400">Release Date</Label>
+                      <Input
+                        type="date"
+                        value={metadata.releaseDate}
+                        onChange={(e) => setMetadata(prev => ({ ...prev, releaseDate: e.target.value }))}
+                        className="bg-zinc-950 border-zinc-700 focus:border-lime-500 font-medium"
+                        disabled={isUploading}
+                      />
+                    </div>
+                  </div>
+
+                  {uploadStatus !== 'idle' && (
+                    <div className="space-y-3 p-4 rounded border-2 border-zinc-800 bg-zinc-900/30">
+                      <div className="flex items-center justify-between mb-2">
+                        <div className="flex items-center gap-2">
+                          {uploadStatus === 'uploading' && <Loader2 className="w-4 h-4 animate-spin text-lime-400" />}
+                          {uploadStatus === 'syncing' && <Loader2 className="w-4 h-4 animate-spin text-emerald-400" />}
+                          {uploadStatus === 'success' && <CheckCircle className="w-4 h-4 text-emerald-400" />}
+                          {uploadStatus === 'error' && <AlertCircle className="w-4 h-4 text-red-400" />}
+                          <span className="text-sm font-black uppercase">
+                            {uploadStage || 'Processing...'}
+                          </span>
+                        </div>
+                      </div>
+                      
+                      {(uploadStatus === 'uploading' || uploadStatus === 'syncing') && (
+                        <>
+                          <div className="space-y-1">
+                            <div className="flex items-center justify-between text-xs">
+                              <span className="font-bold text-zinc-500">Audio Upload</span>
+                              <span className="font-bold text-lime-400">{audioUploadProgress}%</span>
+                            </div>
+                            <Progress value={audioUploadProgress} className="h-2 bg-zinc-900 [&>div]:bg-lime-400" />
+                          </div>
+
+                          {selectedCoverImage && (
+                            <div className="space-y-1">
+                              <div className="flex items-center justify-between text-xs">
+                                <span className="font-bold text-zinc-500">Cover Upload</span>
+                                <span className="font-bold text-emerald-400">{coverUploadProgress}%</span>
+                              </div>
+                              <Progress value={coverUploadProgress} className="h-2 bg-zinc-900 [&>div]:bg-emerald-400" />
+                            </div>
+                          )}
+                        </>
+                      )}
+                      
+                      {uploadStatus === 'success' && (
+                        <div className="flex items-center justify-center gap-2 text-emerald-400 font-bold">
+                          <CheckCircle className="w-5 h-5" />
+                          <span>Upload Complete!</span>
+                        </div>
+                      )}
+                    </div>
+                  )}
+
+                  <Button
+                    onClick={handleUpload}
+                    className="w-full bg-lime-400 hover:bg-lime-500 text-zinc-950 text-lg font-black uppercase tracking-wider border-2 border-lime-400 shadow-2xl shadow-lime-400/40 active:scale-95 transition-all h-12"
+                    disabled={!selectedAudioFile || !metadata.title.trim() || isUploading}
+                  >
+                    <Upload className="w-5 h-5 mr-2" />
+                    {isUploading ? 'UPLOADING...' : 'UPLOAD & SYNC'}
+                  </Button>
+                </CardContent>
+              </Card>
+
+              <Card className="border-2 border-zinc-800 bg-zinc-950/90 backdrop-blur-xl shadow-2xl">
+                <CardHeader className="border-b border-zinc-800/50">
+                  <CardTitle className="text-xl uppercase tracking-wider font-black flex items-center gap-3">
+                    <Music className="w-6 h-6 text-emerald-400" />
+                    <span className="bg-gradient-to-r from-lime-400 to-emerald-400 bg-clip-text text-transparent">
+                      UPLOADED TRACKS
+                    </span>
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="p-6">
+                  {(!uploadedTracks || uploadedTracks.length === 0) ? (
+                    <div className="text-center py-8 text-zinc-500">
+                      <Music className="w-12 h-12 mx-auto mb-2 opacity-50" />
+                      <p className="text-sm font-bold">No tracks uploaded yet</p>
+                    </div>
+                  ) : (
+                    <div className="space-y-3">
+                      {uploadedTracks.map(track => (
+                        <div
+                          key={track.id}
+                          className="p-4 rounded-lg border-2 border-zinc-800 bg-zinc-900/30 hover:border-lime-500/50 transition-all"
+                        >
+                          <div className="flex items-start justify-between mb-2">
+                            <div className="flex-1">
+                              <h3 className="font-black text-lg mb-1">{track.title}</h3>
+                              <p className="text-sm text-zinc-500">{track.artist}</p>
+                            </div>
+                            <Badge className="bg-emerald-500/20 text-emerald-400 border border-emerald-500/50">
+                              <CheckCircle className="w-3 h-3 mr-1" />
+                              Synced
+                            </Badge>
+                          </div>
+                          <div className="flex items-center gap-2 text-xs text-zinc-500">
+                            <span>{new Date(track.uploadedAt).toLocaleDateString()}</span>
+                            <span>•</span>
+                            <a
+                              href={track.audioUrl}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="flex items-center gap-1 hover:text-emerald-400 transition-colors"
+                            >
+                              Audio <ExternalLink className="w-3 h-3" />
+                            </a>
+                            {track.coverImageUrl && (
+                              <>
+                                <span>•</span>
+                                <a
+                                  href={track.coverImageUrl}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="flex items-center gap-1 hover:text-emerald-400 transition-colors"
+                                >
+                                  Cover <ExternalLink className="w-3 h-3" />
+                                </a>
+                              </>
+                            )}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            </motion.div>
+          )}
+
+          {currentView === 'vault' && (
+            <motion.div
+              key="vault"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+              transition={{ duration: 0.2 }}
+            >
+              <VaultSettings />
             </motion.div>
           )}
 
