@@ -380,6 +380,144 @@ export class SocialMediaAPI {
     }
   }
 
+  async postToFacebook(content: PostContent): Promise<PostResult> {
+    if (!this.tokens.facebook) {
+      return {
+        platform: 'facebook',
+        success: false,
+        error: 'Facebook not connected'
+      }
+    }
+
+    try {
+      const { accessToken, pageId } = this.tokens.facebook
+
+      if (!pageId) {
+        throw new Error('No Facebook page connected')
+      }
+
+      let postId: string
+
+      if (content.mediaFile && content.mediaType === 'video') {
+        const initResponse = await fetch(
+          `https://graph.facebook.com/v18.0/${pageId}/videos`,
+          {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+              upload_phase: 'start',
+              access_token: accessToken,
+              file_size: content.mediaFile.size
+            })
+          }
+        )
+
+        const initData = await initResponse.json()
+        if (!initResponse.ok) {
+          throw new Error(initData.error?.message || 'Video init failed')
+        }
+
+        const { video_id, upload_session_id } = initData
+
+        const formData = new FormData()
+        formData.append('video_file_chunk', content.mediaFile)
+        formData.append('upload_session_id', upload_session_id)
+        formData.append('access_token', accessToken)
+
+        const uploadResponse = await fetch(
+          `https://graph.facebook.com/v18.0/${pageId}/videos`,
+          {
+            method: 'POST',
+            body: formData
+          }
+        )
+
+        if (!uploadResponse.ok) {
+          throw new Error('Video upload failed')
+        }
+
+        const finishResponse = await fetch(
+          `https://graph.facebook.com/v18.0/${pageId}/videos`,
+          {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+              upload_phase: 'finish',
+              upload_session_id,
+              access_token: accessToken,
+              description: content.caption
+            })
+          }
+        )
+
+        const finishData = await finishResponse.json()
+        if (!finishResponse.ok) {
+          throw new Error(finishData.error?.message || 'Video publish failed')
+        }
+
+        postId = video_id
+      } else if (content.mediaFile && content.mediaType === 'image') {
+        const formData = new FormData()
+        formData.append('source', content.mediaFile)
+        formData.append('message', content.caption)
+        formData.append('access_token', accessToken)
+
+        const photoResponse = await fetch(
+          `https://graph.facebook.com/v18.0/${pageId}/photos`,
+          {
+            method: 'POST',
+            body: formData
+          }
+        )
+
+        const photoData = await photoResponse.json()
+        if (!photoResponse.ok) {
+          throw new Error(photoData.error?.message || 'Photo upload failed')
+        }
+
+        postId = photoData.id
+      } else {
+        const response = await fetch(
+          `https://graph.facebook.com/v18.0/${pageId}/feed`,
+          {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+              message: content.caption,
+              access_token: accessToken
+            })
+          }
+        )
+
+        const data = await response.json()
+        if (!response.ok) {
+          throw new Error(data.error?.message || 'Post failed')
+        }
+
+        postId = data.id
+      }
+
+      return {
+        platform: 'facebook',
+        success: true,
+        postId,
+        url: `https://www.facebook.com/${postId}`
+      }
+    } catch (error) {
+      return {
+        platform: 'facebook',
+        success: false,
+        error: error instanceof Error ? error.message : 'Unknown error'
+      }
+    }
+  }
+
   async refreshYouTubeToken(): Promise<boolean> {
     if (!this.tokens.youtube?.refreshToken) {
       return false
@@ -471,6 +609,9 @@ export async function postToMultiplePlatforms(
         break
       case 'twitter':
         result = await api.postToTwitter(content)
+        break
+      case 'facebook':
+        result = await api.postToFacebook(content)
         break
       default:
         result = {

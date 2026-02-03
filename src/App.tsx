@@ -88,7 +88,8 @@ const PLATFORM_LIMITS = {
   instagram: 2200,
   twitter: 280,
   tiktok: 2200,
-  youtube: 100
+  youtube: 100,
+  facebook: 63206
 }
 
 const MOCK_COMMENTS: Comment[] = [
@@ -337,6 +338,7 @@ Return a JSON object with three properties: "quotable", "hype", and "story". Eac
         if (platform === 'tiktok' && socialTokens?.tiktok) return true
         if (platform === 'youtube' && socialTokens?.youtube) return true
         if (platform === 'twitter' && socialTokens?.twitter) return true
+        if (platform === 'facebook' && socialTokens?.facebook) return true
         return false
       })
 
@@ -542,7 +544,7 @@ Return a JSON object with three properties: "quotable", "hype", and "story". Eac
               exit={{ opacity: 0, y: -20 }}
               className="grid grid-cols-1 lg:grid-cols-3 gap-6"
             >
-              {!socialTokens?.instagram && !socialTokens?.tiktok && !socialTokens?.youtube && (
+              {!socialTokens?.instagram && !socialTokens?.tiktok && !socialTokens?.youtube && !socialTokens?.facebook && (
                 <div className="lg:col-span-3">
                   <Alert className="border-2 border-accent bg-accent/10 neon-glow-yellow">
                     <Users className="w-5 h-5 text-accent" />
@@ -740,6 +742,20 @@ Return a JSON object with three properties: "quotable", "hype", and "story". Eac
                         <span className="text-sm font-black uppercase flex items-center gap-1 tag-style">
                           X
                           {socialTokens?.twitter && (
+                            <CheckCircle className="w-4 h-4 text-secondary neon-glow-cyan" />
+                          )}
+                        </span>
+                      </label>
+
+                      <label className="flex items-center gap-2 cursor-pointer group">
+                        <Checkbox
+                          checked={platforms.includes('facebook')}
+                          onCheckedChange={() => togglePlatform('facebook')}
+                          className="data-[state=checked]:bg-primary data-[state=checked]:border-primary border-2"
+                        />
+                        <span className="text-sm font-black uppercase flex items-center gap-1 tag-style">
+                          Facebook
+                          {socialTokens?.facebook && (
                             <CheckCircle className="w-4 h-4 text-secondary neon-glow-cyan" />
                           )}
                         </span>

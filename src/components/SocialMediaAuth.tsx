@@ -24,7 +24,8 @@ import {
   LogOut,
   Music,
   Sparkles,
-  Video
+  Video,
+  Facebook
 } from 'lucide-react'
 
 export interface SocialMediaTokens {
@@ -54,6 +55,14 @@ export interface SocialMediaTokens {
     userId: string
     username?: string
   }
+  facebook?: {
+    accessToken: string
+    userId: string
+    expiresAt: number
+    username?: string
+    pageId?: string
+    pageName?: string
+  }
 }
 
 export interface SocialMediaAppCredentials {
@@ -77,6 +86,11 @@ export interface SocialMediaAppCredentials {
     apiSecret: string
     bearerToken: string
   }
+  facebook?: {
+    appId: string
+    appSecret: string
+    redirectUri: string
+  }
 }
 
 export function SocialMediaAuth() {
@@ -86,7 +100,8 @@ export function SocialMediaAuth() {
     instagramSecret: false,
     tiktokSecret: false,
     youtubeSecret: false,
-    twitterSecret: false
+    twitterSecret: false,
+    facebookSecret: false
   })
   const [showSetupGuide, setShowSetupGuide] = useState(false)
   const [isConnecting, setIsConnecting] = useState<string | null>(null)
@@ -118,6 +133,9 @@ export function SocialMediaAuth() {
           break
         case 'youtube':
           await handleYouTubeCallback(code)
+          break
+        case 'facebook':
+          await handleFacebookCallback(code)
           break
       }
     } catch (error) {
@@ -254,6 +272,64 @@ export function SocialMediaAuth() {
     toast.success('YouTube connected successfully!')
   }
 
+  const handleFacebookCallback = async (code: string) => {
+    if (!appCredentials?.facebook) {
+      throw new Error('Facebook credentials not configured')
+    }
+
+    const tokenResponse = await fetch('https://graph.facebook.com/v18.0/oauth/access_token', {
+      method: 'GET',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+    })
+
+    const tokenUrl = new URL('https://graph.facebook.com/v18.0/oauth/access_token')
+    tokenUrl.searchParams.append('client_id', appCredentials.facebook.appId)
+    tokenUrl.searchParams.append('client_secret', appCredentials.facebook.appSecret)
+    tokenUrl.searchParams.append('redirect_uri', appCredentials.facebook.redirectUri)
+    tokenUrl.searchParams.append('code', code)
+
+    const response = await fetch(tokenUrl.toString())
+
+    if (!response.ok) {
+      throw new Error('Failed to exchange Facebook code for token')
+    }
+
+    const tokenData = await response.json()
+
+    const longLivedUrl = new URL('https://graph.facebook.com/v18.0/oauth/access_token')
+    longLivedUrl.searchParams.append('grant_type', 'fb_exchange_token')
+    longLivedUrl.searchParams.append('client_id', appCredentials.facebook.appId)
+    longLivedUrl.searchParams.append('client_secret', appCredentials.facebook.appSecret)
+    longLivedUrl.searchParams.append('fb_exchange_token', tokenData.access_token)
+
+    const longLivedResponse = await fetch(longLivedUrl.toString())
+    const longLivedData = await longLivedResponse.json()
+
+    const meResponse = await fetch(
+      `https://graph.facebook.com/v18.0/me?fields=id,name&access_token=${longLivedData.access_token}`
+    )
+    const meData = await meResponse.json()
+
+    const pagesResponse = await fetch(
+      `https://graph.facebook.com/v18.0/me/accounts?access_token=${longLivedData.access_token}`
+    )
+    const pagesData = await pagesResponse.json()
+
+    setTokens((current) => ({
+      ...current,
+      facebook: {
+        accessToken: longLivedData.access_token,
+        userId: meData.id,
+        expiresAt: Date.now() + (longLivedData.expires_in * 1000),
+        username: meData.name,
+        pageId: pagesData.data?.[0]?.id,
+        pageName: pagesData.data?.[0]?.name
+      }
+    }))
+
+    toast.success('Facebook connected successfully!')
+  }
+
   const connectInstagram = () => {
     if (!appCredentials?.instagram) {
       toast.error('Configure Instagram app credentials first')
@@ -299,6 +375,22 @@ export function SocialMediaAuth() {
     authUrl.searchParams.append('scope', 'https://www.googleapis.com/auth/youtube.upload https://www.googleapis.com/auth/youtube')
     authUrl.searchParams.append('access_type', 'offline')
     authUrl.searchParams.append('state', 'youtube')
+
+    window.location.href = authUrl.toString()
+  }
+
+  const connectFacebook = () => {
+    if (!appCredentials?.facebook) {
+      toast.error('Configure Facebook app credentials first')
+      return
+    }
+
+    const authUrl = new URL('https://www.facebook.com/v18.0/dialog/oauth')
+    authUrl.searchParams.append('client_id', appCredentials.facebook.appId)
+    authUrl.searchParams.append('redirect_uri', appCredentials.facebook.redirectUri)
+    authUrl.searchParams.append('scope', 'pages_show_list,pages_read_engagement,pages_manage_posts,pages_manage_engagement')
+    authUrl.searchParams.append('response_type', 'code')
+    authUrl.searchParams.append('state', 'facebook')
 
     window.location.href = authUrl.toString()
   }
@@ -351,6 +443,11 @@ export function SocialMediaAuth() {
         clientId: '123456789012-abc123def456.apps.googleusercontent.com',
         clientSecret: 'demo_youtube_secret_ghi789',
         redirectUri: window.location.origin
+      },
+      facebook: {
+        appId: '1234567890123456',
+        appSecret: 'demo_facebook_secret_jkl012',
+        redirectUri: window.location.origin
       }
     }
 
@@ -359,7 +456,8 @@ export function SocialMediaAuth() {
       instagramSecret: true,
       tiktokSecret: true,
       youtubeSecret: true,
-      twitterSecret: true
+      twitterSecret: true,
+      facebookSecret: true
     })
     toast.success('Demo credentials loaded! Note: These won\'t actually authenticate.')
   }
@@ -385,6 +483,14 @@ export function SocialMediaAuth() {
         channelId: 'UCdemo_channel_789',
         expiresAt: Date.now() + (60 * 24 * 60 * 60 * 1000),
         channelName: 'PIKO Official'
+      },
+      facebook: {
+        accessToken: 'demo_fb_token_' + Date.now(),
+        userId: 'demo_fb_user_123',
+        expiresAt: Date.now() + (60 * 24 * 60 * 60 * 1000),
+        username: 'PIKO Artist',
+        pageId: 'demo_page_456',
+        pageName: 'PIKO Official Page'
       }
     }
 
@@ -477,6 +583,23 @@ export function SocialMediaAuth() {
                   <li>Go to Credentials → Create OAuth 2.0 Client ID</li>
                   <li>Add Authorized redirect URIs</li>
                   <li>Copy Client ID and Client Secret</li>
+                </ol>
+              </div>
+
+              <Separator />
+
+              <div className="space-y-2">
+                <h4 className="font-black uppercase flex items-center gap-2" style={{ color: 'oklch(0.65 0.25 250)' }}>
+                  <Facebook className="w-4 h-4" />
+                  Facebook (Meta for Developers)
+                </h4>
+                <ol className="list-decimal list-inside space-y-1 text-muted-foreground ml-2">
+                  <li>Go to <a href="https://developers.facebook.com/" target="_blank" rel="noopener noreferrer" style={{ color: 'oklch(0.65 0.25 250)' }} className="hover:underline">developers.facebook.com</a></li>
+                  <li>Create a new app → Choose "Business" or "Consumer" type</li>
+                  <li>Add "Facebook Login" product</li>
+                  <li>Configure Valid OAuth Redirect URIs</li>
+                  <li>Request "pages_manage_posts" permission</li>
+                  <li>Copy App ID and App Secret</li>
                 </ol>
               </div>
 
@@ -775,6 +898,103 @@ export function SocialMediaAuth() {
             )}
           </CardContent>
         </Card>
+
+        <Card className="studio-card">
+          <CardHeader>
+            <CardTitle className="text-xl uppercase tracking-tight flex items-center gap-2">
+              <Facebook className="w-5 h-5" style={{ color: 'oklch(0.65 0.25 250)' }} />
+              FACEBOOK
+            </CardTitle>
+            <CardDescription>Facebook Graph API for page posts and videos</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="space-y-2">
+              <Label className="text-sm font-black uppercase">App ID</Label>
+              <Input
+                value={appCredentials?.facebook?.appId || ''}
+                onChange={(e) => updateAppCredential('facebook', 'appId', e.target.value)}
+                placeholder="1234567890123456"
+                className="bg-muted/50 font-mono text-sm"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label className="text-sm font-black uppercase flex items-center justify-between">
+                App Secret
+                <button
+                  onClick={() => toggleSecretVisibility('facebookSecret')}
+                  className="text-muted-foreground hover:text-foreground transition-colors"
+                >
+                  {showSecrets.facebookSecret ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                </button>
+              </Label>
+              <Input
+                type={showSecrets.facebookSecret ? 'text' : 'password'}
+                value={appCredentials?.facebook?.appSecret || ''}
+                onChange={(e) => updateAppCredential('facebook', 'appSecret', e.target.value)}
+                placeholder="Enter App Secret"
+                className="bg-muted/50 font-mono text-sm"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label className="text-sm font-black uppercase">Redirect URI</Label>
+              <Input
+                value={appCredentials?.facebook?.redirectUri || window.location.origin}
+                onChange={(e) => updateAppCredential('facebook', 'redirectUri', e.target.value)}
+                placeholder={window.location.origin}
+                className="bg-muted/50 font-mono text-sm"
+              />
+            </div>
+
+            <Separator />
+
+            {tokens?.facebook && !isTokenExpired(tokens.facebook.expiresAt) ? (
+              <div className="space-y-3">
+                <div className="flex items-center gap-2 p-3 rounded bg-secondary/10 border border-secondary">
+                  <CheckCircle className="w-5 h-5 text-secondary" />
+                  <div className="flex-1">
+                    <p className="text-sm font-bold">Connected</p>
+                    {tokens.facebook.pageName && (
+                      <p className="text-xs text-muted-foreground">{tokens.facebook.pageName}</p>
+                    )}
+                  </div>
+                </div>
+                <Button
+                  onClick={() => disconnectPlatform('facebook')}
+                  variant="outline"
+                  className="w-full border-destructive/50 hover:bg-destructive/10"
+                >
+                  <LogOut className="w-4 h-4 mr-2" />
+                  Disconnect
+                </Button>
+              </div>
+            ) : (
+              <div className="space-y-2">
+                <Button
+                  onClick={connectFacebook}
+                  className="w-full"
+                  style={{ backgroundColor: 'oklch(0.65 0.25 250)', color: 'white' }}
+                  disabled={!appCredentials?.facebook?.appId || !appCredentials?.facebook?.appSecret}
+                >
+                  <LogIn className="w-4 h-4 mr-2" />
+                  Connect Facebook
+                </Button>
+                {appCredentials?.facebook?.appId && (
+                  <Button
+                    onClick={() => simulateConnection('facebook')}
+                    variant="outline"
+                    className="w-full"
+                    style={{ borderColor: 'oklch(0.65 0.25 250 / 0.5)' }}
+                  >
+                    <Sparkles className="w-4 h-4 mr-2" />
+                    Demo Connect
+                  </Button>
+                )}
+              </div>
+            )}
+          </CardContent>
+        </Card>
       </div>
 
       <Card className="studio-card border-primary/30">
@@ -785,7 +1005,7 @@ export function SocialMediaAuth() {
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
             <div className="flex items-center justify-between p-3 rounded bg-muted/30 border border-border">
               <div className="flex items-center gap-2">
                 <Instagram className="w-5 h-5 text-primary" />
@@ -826,6 +1046,23 @@ export function SocialMediaAuth() {
                 <span className="text-sm font-bold">YouTube</span>
               </div>
               {tokens?.youtube && !isTokenExpired(tokens.youtube.expiresAt) ? (
+                <Badge className="bg-secondary/20 text-secondary border-secondary/50">
+                  <CheckCircle className="w-3 h-3 mr-1" />
+                  Active
+                </Badge>
+              ) : (
+                <Badge variant="outline" className="border-muted-foreground/50">
+                  Not Connected
+                </Badge>
+              )}
+            </div>
+
+            <div className="flex items-center justify-between p-3 rounded bg-muted/30 border border-border">
+              <div className="flex items-center gap-2">
+                <Facebook className="w-5 h-5" style={{ color: 'oklch(0.65 0.25 250)' }} />
+                <span className="text-sm font-bold">Facebook</span>
+              </div>
+              {tokens?.facebook && !isTokenExpired(tokens.facebook.expiresAt) ? (
                 <Badge className="bg-secondary/20 text-secondary border-secondary/50">
                   <CheckCircle className="w-3 h-3 mr-1" />
                   Active
