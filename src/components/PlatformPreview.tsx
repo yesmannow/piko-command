@@ -186,13 +186,13 @@ export function PlatformPreview({ caption, selectedPlatforms }: PlatformPreviewP
                         dangerouslySetInnerHTML={{ __html: formatCaption(caption.slice(0, 150)) }}
                       />
                     </div>
-                  </div>
                 </div>
               </div>
             </div>
-
+            </div>
+{availablePlatforms.filter(p => !['instagram', 'tiktok'].includes(p)).length > 0 && (
             {availablePlatforms.filter(p => !['instagram', 'tiktok'].includes(p)).length > 0 && (
-              <div className="pt-4 border-t border-zinc-800">
+              <div className="pt-4 border-t border-zinc-800">rms</p>
                 <p className="text-xs text-zinc-500 font-bold uppercase tracking-wider mb-3">Other Selected Platforms</p>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
                   {availablePlatforms.includes('twitter') && (
@@ -205,22 +205,22 @@ export function PlatformPreview({ caption, selectedPlatforms }: PlatformPreviewP
                         </Badge>
                       </div>
                       <div className="text-xs text-zinc-300 line-clamp-3" dangerouslySetInnerHTML={{ __html: formatCaption(caption) }} />
-                    </div>
+                  )}
                   )}
                   
                   {availablePlatforms.includes('facebook') && (
                     <div className="border-2 border-blue-600/30 rounded-lg overflow-hidden bg-zinc-950 p-3">
                       <div className="flex items-center gap-2 mb-2">
-                        <FacebookLogo className="w-4 h-4 text-blue-500" weight="bold" />
+                        <FacebookLogo className="w-4 h-4 text-blue-500" weight="bold" />n>
                         <span className="text-xs font-black text-blue-500">FACEBOOK</span>
                         <Badge className="bg-blue-500/20 text-blue-400 border-0 text-xs ml-auto">
                           {getCharacterCount('facebook').count}
                         </Badge>
-                      </div>
+                      </div>inc-300 line-clamp-3" dangerouslySetInnerHTML={{ __html: formatCaption(caption) }} />
                       <div className="text-xs text-zinc-300 line-clamp-3" dangerouslySetInnerHTML={{ __html: formatCaption(caption) }} />
                     </div>
                   )}
-
+des('linkedin') && (
                   {availablePlatforms.includes('linkedin') && (
                     <div className="border-2 border-blue-700/30 rounded-lg overflow-hidden bg-zinc-950 p-3">
                       <div className="flex items-center gap-2 mb-2">
@@ -233,25 +233,25 @@ export function PlatformPreview({ caption, selectedPlatforms }: PlatformPreviewP
                       <div className="text-xs text-zinc-300 line-clamp-3" dangerouslySetInnerHTML={{ __html: formatCaption(caption) }} />
                     </div>
                   )}
-                </div>
               </div>
             )}
+            )}
           </div>
-        ) : (
+        ) : (bs defaultValue={availablePlatforms[0]} className="w-full">
           <Tabs defaultValue={availablePlatforms[0]} className="w-full">
             <TabsList className="grid w-full grid-cols-3 md:grid-cols-5 bg-zinc-900/50 border-2 border-zinc-800">
               {availablePlatforms.includes('instagram') && (
                 <TabsTrigger 
-                  value="instagram" 
+                  value="instagram" ta-[state=active]:text-pink-400"
                   className="font-bold uppercase text-xs data-[state=active]:bg-pink-500/20 data-[state=active]:text-pink-400"
-                >
+                >me="w-4 h-4 mr-1" weight="bold" />
                   <InstagramLogo className="w-4 h-4 mr-1" weight="bold" />
                   IG
                 </TabsTrigger>
               )}
               {availablePlatforms.includes('tiktok') && (
                 <TabsTrigger 
-                  value="tiktok" 
+                  value="tiktok" ive]:text-cyan-400"
                   className="font-bold uppercase text-xs data-[state=active]:bg-cyan-500/20 data-[state=active]:text-cyan-400"
                 >
                   <TiktokLogo className="w-4 h-4 mr-1" weight="bold" />
@@ -294,8 +294,8 @@ export function PlatformPreview({ caption, selectedPlatforms }: PlatformPreviewP
                     <div className="flex items-center gap-3">
                       <div className="w-8 h-8 rounded-full bg-gradient-to-br from-pink-500 to-yellow-500 flex items-center justify-center text-white text-xs font-black">
                         P
-                      </div>
                       <div>
+                      <div>t-bold text-white">piko_music</p>
                         <p className="text-sm font-bold text-white">piko_music</p>
                         <p className="text-xs text-zinc-500">Music · Artist</p>
                       </div>
@@ -325,28 +325,28 @@ export function PlatformPreview({ caption, selectedPlatforms }: PlatformPreviewP
                       <span 
                         className="text-zinc-300 leading-relaxed"
                         dangerouslySetInnerHTML={{ __html: formatCaption(caption.slice(0, 200)) }}
-                      />
+                      {caption.length > 200 && (
                       {caption.length > 200 && (
                         <span className="text-zinc-500 ml-1">...more</span>
                       )}
-                    </div>
                   </div>
                 </div>
               </TabsContent>
+              </TabsContent>
             )}
-
-            {availablePlatforms.includes('tiktok') && (
+{availablePlatforms.includes('tiktok') && (
+            {availablePlatforms.includes('tiktok') && (-4">
               <TabsContent value="tiktok" className="mt-4">
                 <div className="border-2 border-cyan-500/30 rounded-lg overflow-hidden bg-black">
                   <div className="bg-zinc-950 border-b border-zinc-800 p-3 flex items-center justify-between">
-                    <div className="flex items-center gap-3">
+                    <div className="flex items-center gap-3">stify-center text-white text-xs font-black">
                       <div className="w-8 h-8 rounded-full bg-gradient-to-br from-cyan-500 to-pink-500 flex items-center justify-center text-white text-xs font-black">
                         P
                       </div>
                       <div>
                         <p className="text-sm font-bold text-white">@piko.music</p>
                       </div>
-                    </div>
+                    <Badge className="bg-cyan-500/20 text-cyan-400 border-cyan-500/50 text-xs">
                     <Badge className="bg-cyan-500/20 text-cyan-400 border-cyan-500/50 text-xs">
                       {getCharacterCount('tiktok').count}/{getCharacterCount('tiktok').limit}
                     </Badge>
@@ -356,7 +356,7 @@ export function PlatformPreview({ caption, selectedPlatforms }: PlatformPreviewP
                     <div className="text-center text-zinc-700">
                       <TiktokLogo className="w-16 h-16 mx-auto mb-2" weight="thin" />
                       <p className="text-sm">Vertical Video Preview</p>
-                    </div>
+                  </div>
                   </div>
 
                   <div className="p-4 bg-zinc-950">
@@ -367,19 +367,19 @@ export function PlatformPreview({ caption, selectedPlatforms }: PlatformPreviewP
                         dangerouslySetInnerHTML={{ __html: formatCaption(caption.slice(0, 150)) }}
                       />
                     </div>
-                  </div>
                 </div>
               </TabsContent>
+              </TabsContent>
             )}
-
+latforms.includes('twitter') && (
             {availablePlatforms.includes('twitter') && (
               <TabsContent value="twitter" className="mt-4">
                 <div className="border-2 border-blue-500/30 rounded-lg overflow-hidden bg-black">
                   <div className="bg-zinc-950 p-4 space-y-3">
-                    <div className="flex items-start gap-3">
+                    <div className="flex items-start gap-3">rom-blue-500 to-cyan-500 flex items-center justify-center text-white text-sm font-black flex-shrink-0">
                       <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-500 to-cyan-500 flex items-center justify-center text-white text-sm font-black flex-shrink-0">
                         P
-                      </div>
+                      </div>lassName="flex-1 min-w-0">
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2 mb-2">
                           <span className="font-bold text-white">PIKO</span>
@@ -396,7 +396,7 @@ export function PlatformPreview({ caption, selectedPlatforms }: PlatformPreviewP
                           dangerouslySetInnerHTML={{ __html: formatCaption(caption) }}
                         />
                       </div>
-                    </div>
+                  </div>
                   </div>
                 </div>
               </TabsContent>
@@ -417,7 +417,7 @@ export function PlatformPreview({ caption, selectedPlatforms }: PlatformPreviewP
                       <Badge className="bg-blue-500/20 text-blue-400 border-blue-500/50 text-xs ml-auto">
                         {getCharacterCount('facebook').count}/{getCharacterCount('facebook').limit}
                       </Badge>
-                    </div>
+                  </div>
                   </div>
                   
                   <div className="p-4">
@@ -425,11 +425,11 @@ export function PlatformPreview({ caption, selectedPlatforms }: PlatformPreviewP
                       className="text-zinc-200 text-sm leading-relaxed whitespace-pre-wrap"
                       dangerouslySetInnerHTML={{ __html: formatCaption(caption) }}
                     />
-                  </div>
                 </div>
               </TabsContent>
+              </TabsContent>
             )}
-
+latforms.includes('linkedin') && (
             {availablePlatforms.includes('linkedin') && (
               <TabsContent value="linkedin" className="mt-4">
                 <div className="border-2 border-blue-700/30 rounded-lg overflow-hidden bg-zinc-950">
@@ -455,12 +455,11 @@ export function PlatformPreview({ caption, selectedPlatforms }: PlatformPreviewP
                       dangerouslySetInnerHTML={{ __html: formatCaption(caption) }}
                     />
                   </div>
-                </div>
+              </TabsContent>
               </TabsContent>
             )}
           </Tabs>
         )}
-      </CardContent>
     </Card>
   )
 }
