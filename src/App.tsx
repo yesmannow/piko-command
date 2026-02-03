@@ -32,10 +32,14 @@ import {
   TrendingUp,
   Share2,
   Eye,
-  Send
+  Send,
+  Settings,
+  Database
 } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 import confetti from 'canvas-confetti'
+import { VaultSettings } from '@/components/VaultSettings'
+import { TrackManager } from '@/components/TrackManager'
 
 interface MediaFile {
   id: string
@@ -97,7 +101,7 @@ function App() {
   const [isDropping, setIsDropping] = useState(false)
   const [isDragging, setIsDragging] = useState(false)
   const [playingVideo, setPlayingVideo] = useState(false)
-  const [currentView, setCurrentView] = useState<'drop' | 'preview' | 'comments' | 'calendar'>('drop')
+  const [currentView, setCurrentView] = useState<'drop' | 'preview' | 'comments' | 'calendar' | 'vault' | 'studio'>('drop')
   const [showLyricDialog, setShowLyricDialog] = useState(false)
   const [lyrics, setLyrics] = useState('')
   const [isAnalyzing, setIsAnalyzing] = useState(false)
@@ -446,6 +450,22 @@ Return a JSON object with three properties: "quotable", "hype", and "story". Eac
           >
             <Calendar className="w-4 h-4 mr-2" />
             RELEASES
+          </Button>
+          <Button
+            variant={currentView === 'studio' ? 'default' : 'outline'}
+            onClick={() => setCurrentView('studio')}
+            className={currentView === 'studio' ? 'bg-accent text-accent-foreground' : ''}
+          >
+            <Database className="w-4 h-4 mr-2" />
+            STUDIO
+          </Button>
+          <Button
+            variant={currentView === 'vault' ? 'default' : 'outline'}
+            onClick={() => setCurrentView('vault')}
+            className={currentView === 'vault' ? 'bg-secondary text-secondary-foreground' : ''}
+          >
+            <Settings className="w-4 h-4 mr-2" />
+            VAULT
           </Button>
         </div>
 
@@ -1020,6 +1040,28 @@ Return a JSON object with three properties: "quotable", "hype", and "story". Eac
                   </div>
                 </CardContent>
               </Card>
+            </motion.div>
+          )}
+
+          {currentView === 'studio' && (
+            <motion.div
+              key="studio"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+            >
+              <TrackManager />
+            </motion.div>
+          )}
+
+          {currentView === 'vault' && (
+            <motion.div
+              key="vault"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+            >
+              <VaultSettings />
             </motion.div>
           )}
         </AnimatePresence>

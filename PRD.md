@@ -68,6 +68,28 @@ This is a comprehensive artist workflow tool featuring multi-platform content di
 - **Progression**: User views dashboard → Hype meters animate in → Bars pulse with new activity → Hover shows exact numbers → Click for detailed breakdown
 - **Success Criteria**: Animations are fluid (60fps), meters respond to real-time data, visual language matches studio aesthetic (VU meters, spectrum analyzers)
 
+### Studio-to-Web Upload (R2 Integration)
+- **Functionality**: Upload audio tracks directly to Cloudflare R2 storage with automatic GitHub repository sync to update artist website
+- **Purpose**: Streamline the workflow from studio production to live website—no manual file uploads or repo updates needed
+- **Trigger**: User selects audio file in Studio tab → Enters track metadata → Clicks "Upload & Sync"
+- **Progression**: User uploads track file → App uploads to R2 bucket → Generates public R2 URL → Updates GitHub repo's tracks.json → Triggers Vercel redeploy → Track appears on live website → Success confirmation
+- **Success Criteria**: Upload completes within 30 seconds for 50MB file, GitHub API call succeeds, tracks.json properly formatted, no data loss, progress bar shows accurate status
+
+### Vault Settings (Credential Management)
+- **Functionality**: Secure storage interface for R2 access keys, bucket configuration, and GitHub personal access token
+- **Purpose**: Centralize all API credentials in one secure location with password masking and validation
+- **Trigger**: User clicks "Vault" tab to configure or update credentials
+- **Progression**: User enters R2 Account ID → Bucket name → Access keys → GitHub owner/repo → Personal access token → Saves to encrypted KV storage → Validates required fields → Success confirmation
+- **Success Criteria**: All credentials stored securely in KV, password fields masked by default with toggle, validation prevents missing fields, credentials persist across sessions
+
+### Live Website Preview (Website Integration)
+- **Functionality**: Embedded iframe showing live artist website (https://piko-artist-website.vercel.app/) to verify uploaded tracks appear correctly
+- **Purpose**: Provide instant visual feedback that tracks synced successfully without leaving the app
+- **Trigger**: Auto-loads in Studio tab; refreshes after successful upload
+- **Progression**: User views Studio tab → Iframe loads live website → User uploads track → After sync completes, can verify track appears → Click "Open in New Tab" for full-screen view
+- **Success Criteria**: Iframe loads within 3 seconds, displays website responsively, new tracks visible after GitHub sync, external link opens correctly
+
+
 ## Edge Case Handling
 - **Empty Composer Send**: Disable send button when textarea is empty; show subtle visual feedback
 - **Character Limit Overflow**: Display warning color (Cyber Lime) when approaching limits, red when exceeded
@@ -78,6 +100,13 @@ This is a comprehensive artist workflow tool featuring multi-platform content di
 - **Large Media Files**: Show file size warnings for files over 100MB; automatically compress images when auto-optimize is enabled
 - **Compression Failures**: Gracefully fall back to original file if compression fails; show error toast
 - **No Images to Optimize**: Disable optimize button and show informative message when all images are already optimized or only videos are present
+- **Missing Vault Credentials**: Prevent upload attempts and show clear error when R2/GitHub credentials not configured
+- **R2 Upload Failure**: Display specific error message with retry option; maintain upload progress state
+- **GitHub API Failure**: Handle authentication errors, rate limits, and file conflicts gracefully
+- **Invalid Audio Format**: Validate file type before upload; show supported formats list
+- **Network Timeout**: Implement timeout handling for long uploads with resume capability indication
+- **Empty Uploaded Tracks**: Show encouraging empty state with upload call-to-action
+- **Iframe Load Failure**: Show fallback message if website preview cannot load
 
 ## Design Direction
 The design should feel like stepping into a high-end recording studio at night—almost pitch black with aggressive neon accents cutting through the darkness. High contrast is key: sharp whites for text, electric neon for actions, deep blacks for backgrounds. Typography should be bold and commanding. Every interaction should feel tactile and immediate, optimized for mobile touch with large targets and instant visual feedback. This is a professional tool that looks like it belongs in a booth, not a boardroom.
@@ -160,9 +189,18 @@ Key animation moments:
 - **RotateCcw**: For republish action
 - **AlertCircle**: For error states
 - **Check**: For success confirmations and optimized badges
-- **Settings**: For compression settings dialog
+- **Settings**: For Vault settings tab
 - **Gauge**: For quality/compression indicators
 - **Zap**: For optimize action (fast/electric connotation)
+- **Database**: For Studio tab (R2 storage)
+- **Upload**: For track upload interface
+- **Globe**: For live website preview
+- **Eye/EyeOff**: For password field visibility toggle
+- **Key**: For credential security indicators
+- **Github**: For GitHub integration section
+- **ExternalLink**: For opening website in new tab
+- **Loader2**: For async operation loading states
+- **CheckCircle**: For successful upload/sync confirmations
 
 **Spacing**:
 - Container padding: p-6 (24px) on desktop, p-4 (16px) on mobile
