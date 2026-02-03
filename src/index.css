@@ -8,87 +8,74 @@
   
   body {
     font-family: var(--font-sans), ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, 'Noto Sans', sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
+    background: linear-gradient(135deg, oklch(0.12 0.02 265) 0%, oklch(0.15 0.03 280) 50%, oklch(0.10 0.015 250) 100%);
+    background-attachment: fixed;
   }
   
   h1, h2, h3, h4, h5, h6 {
     font-family: 'Bebas Neue', sans-serif;
+    letter-spacing: 0.05em;
   }
 }
 
 :root {
-  --background: oklch(0.98 0.005 140);
-  --foreground: oklch(0.20 0.12 140);
+  --background: oklch(0.12 0.02 265);
+  --foreground: oklch(0.98 0.01 90);
   
-  --card: oklch(0.96 0.008 140);
-  --card-foreground: oklch(0.20 0.12 140);
+  --card: oklch(0.16 0.025 270);
+  --card-foreground: oklch(0.98 0.01 90);
   
-  --popover: oklch(0.99 0.003 140);
-  --popover-foreground: oklch(0.20 0.12 140);
+  --popover: oklch(0.14 0.02 265);
+  --popover-foreground: oklch(0.98 0.01 90);
   
-  --primary: oklch(0.35 0.18 140);
-  --primary-foreground: oklch(0.98 0.005 140);
+  --primary: oklch(0.75 0.25 330);
+  --primary-foreground: oklch(0.12 0.02 265);
   
-  --secondary: oklch(0.88 0.08 140);
-  --secondary-foreground: oklch(0.25 0.12 140);
+  --secondary: oklch(0.70 0.28 195);
+  --secondary-foreground: oklch(0.12 0.02 265);
   
-  --muted: oklch(0.92 0.02 140);
-  --muted-foreground: oklch(0.45 0.08 140);
+  --muted: oklch(0.20 0.03 270);
+  --muted-foreground: oklch(0.60 0.08 265);
   
-  --accent: oklch(0.45 0.15 120);
-  --accent-foreground: oklch(0.98 0.005 140);
+  --accent: oklch(0.78 0.26 75);
+  --accent-foreground: oklch(0.12 0.02 265);
   
-  --destructive: oklch(0.50 0.20 15);
-  --destructive-foreground: oklch(0.98 0.005 140);
+  --destructive: oklch(0.65 0.25 25);
+  --destructive-foreground: oklch(0.98 0.01 90);
   
-  --border: oklch(0.85 0.05 140);
-  --input: oklch(0.85 0.05 140);
-  --ring: oklch(0.35 0.18 140);
+  --border: oklch(0.25 0.04 270);
+  --input: oklch(0.22 0.03 270);
+  --ring: oklch(0.75 0.25 330);
   
-  --radius: 0rem;
+  --radius: 0.35rem;
   
-  --font-sans: IBM Plex Sans;
+  --font-sans: 'Barlow', sans-serif;
+  --font-display: 'Bebas Neue', sans-serif;
+  --font-alt: 'Staatliches', cursive;
+  --font-tech: 'Rajdhani', sans-serif;
+  --font-mono: 'Teko', monospace;
   
-  --font-serif: IBM Plex Serif;
+  --chart-1: oklch(0.75 0.25 330);
+  --chart-2: oklch(0.70 0.28 195);
+  --chart-3: oklch(0.78 0.26 75);
+  --chart-4: oklch(0.68 0.24 120);
+  --chart-5: oklch(0.72 0.26 290);
   
-  --font-mono: Fira Code;
+  --sidebar: oklch(0.14 0.02 265);
+  --sidebar-foreground: oklch(0.98 0.01 90);
+  --sidebar-primary: oklch(0.75 0.25 330);
+  --sidebar-primary-foreground: oklch(0.12 0.02 265);
+  --sidebar-accent: oklch(0.20 0.03 270);
+  --sidebar-accent-foreground: oklch(0.98 0.01 90);
+  --sidebar-border: oklch(0.25 0.04 270);
+  --sidebar-ring: oklch(0.75 0.25 330);
   
-  --chart-1: oklch(0.35 0.18 140);
-  
-  --chart-2: oklch(0.45 0.15 120);
-  
-  --chart-3: oklch(0.30 0.20 150);
-  
-  --chart-4: oklch(0.55 0.12 130);
-  
-  --chart-5: oklch(0.40 0.16 125);
-  
-  --sidebar: oklch(0.94 0.008 140);
-  
-  --sidebar-foreground: oklch(0.20 0.12 140);
-  
-  --sidebar-primary: oklch(0.35 0.18 140);
-  
-  --sidebar-primary-foreground: oklch(0.98 0.005 140);
-  
-  --sidebar-accent: oklch(0.88 0.08 140);
-  
-  --sidebar-accent-foreground: oklch(0.25 0.12 140);
-  
-  --sidebar-border: oklch(0.85 0.05 140);
-  
-  --sidebar-ring: oklch(0.35 0.18 140);
-  
-  --shadow-color: oklch(0.35 0.18 140);
-  
-  --shadow-opacity: 0.4;
-  
-  --shadow-blur: 0px;
-  
-  --shadow-spread: 0px;
-  
-  --shadow-offset-x: 2px;
-  
-  --shadow-offset-y: 2px;
+  --graffiti-pink: oklch(0.75 0.25 330);
+  --graffiti-cyan: oklch(0.70 0.28 195);
+  --graffiti-yellow: oklch(0.78 0.26 75);
+  --graffiti-lime: oklch(0.68 0.24 120);
+  --graffiti-purple: oklch(0.72 0.26 290);
+  --graffiti-orange: oklch(0.65 0.25 25);
 }
 
 @theme {
@@ -120,31 +107,180 @@
   --radius-full: 9999px;
 }
 
-.neon-glow-magenta {
-  box-shadow: 0 0 20px oklch(0.701 0.322 328 / 0.5), 0 0 40px oklch(0.701 0.322 328 / 0.3);
+.graffiti-texture {
+  position: relative;
+  overflow: hidden;
+}
+
+.graffiti-texture::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image: 
+    repeating-linear-gradient(
+      45deg,
+      transparent,
+      transparent 10px,
+      oklch(0.75 0.25 330 / 0.03) 10px,
+      oklch(0.75 0.25 330 / 0.03) 20px
+    ),
+    repeating-linear-gradient(
+      -45deg,
+      transparent,
+      transparent 10px,
+      oklch(0.70 0.28 195 / 0.03) 10px,
+      oklch(0.70 0.28 195 / 0.03) 20px
+    );
+  pointer-events: none;
+  z-index: 0;
+}
+
+.spray-paint-border {
+  position: relative;
+  border: 3px solid transparent;
+  background: 
+    linear-gradient(var(--card), var(--card)) padding-box,
+    linear-gradient(135deg, 
+      var(--graffiti-pink), 
+      var(--graffiti-cyan), 
+      var(--graffiti-yellow), 
+      var(--graffiti-pink)
+    ) border-box;
+}
+
+.neon-glow-pink {
+  box-shadow: 
+    0 0 10px var(--graffiti-pink),
+    0 0 20px var(--graffiti-pink),
+    0 0 40px oklch(0.75 0.25 330 / 0.4);
 }
 
 .neon-glow-cyan {
-  box-shadow: 0 0 20px oklch(0.906 0.195 195 / 0.5), 0 0 40px oklch(0.906 0.195 195 / 0.3);
+  box-shadow: 
+    0 0 10px var(--graffiti-cyan),
+    0 0 20px var(--graffiti-cyan),
+    0 0 40px oklch(0.70 0.28 195 / 0.4);
+}
+
+.neon-glow-yellow {
+  box-shadow: 
+    0 0 10px var(--graffiti-yellow),
+    0 0 20px var(--graffiti-yellow),
+    0 0 40px oklch(0.78 0.26 75 / 0.4);
+}
+
+.neon-glow-lime {
+  box-shadow: 
+    0 0 10px var(--graffiti-lime),
+    0 0 20px var(--graffiti-lime),
+    0 0 40px oklch(0.68 0.24 120 / 0.4);
+}
+
+.neon-glow-purple {
+  box-shadow: 
+    0 0 10px var(--graffiti-purple),
+    0 0 20px var(--graffiti-purple),
+    0 0 40px oklch(0.72 0.26 290 / 0.4);
+}
+
+.neon-glow-magenta {
+  box-shadow: 
+    0 0 10px var(--graffiti-pink),
+    0 0 20px var(--graffiti-pink),
+    0 0 40px oklch(0.75 0.25 330 / 0.4);
 }
 
 .neon-glow-orange {
-  box-shadow: 0 0 20px oklch(0.646 0.237 16 / 0.5), 0 0 40px oklch(0.646 0.237 16 / 0.3);
+  box-shadow: 
+    0 0 10px var(--graffiti-orange),
+    0 0 20px var(--graffiti-orange),
+    0 0 40px oklch(0.65 0.25 25 / 0.4);
 }
 
 .studio-card {
-  @apply bg-card/80 backdrop-blur-sm border border-border shadow-xl;
+  @apply bg-card/90 backdrop-blur-md border-2 border-border/50 shadow-2xl relative;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.studio-card:hover {
+  @apply border-primary/50;
+  transform: translateY(-2px);
+}
+
+.tag-style {
+  font-family: var(--font-alt);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  font-weight: 400;
+}
+
+.street-shadow {
+  text-shadow: 
+    3px 3px 0px oklch(0.08 0.01 265),
+    -1px -1px 0px oklch(0.75 0.25 330 / 0.3);
+}
+
+@keyframes spray-paint {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+.animated-gradient {
+  background: linear-gradient(
+    -45deg,
+    var(--graffiti-pink),
+    var(--graffiti-cyan),
+    var(--graffiti-yellow),
+    var(--graffiti-lime)
+  );
+  background-size: 400% 400%;
+  animation: spray-paint 10s ease infinite;
 }
 
 @keyframes pulse-glow {
   0%, 100% {
-    box-shadow: 0 0 20px oklch(0.701 0.322 328 / 0.3);
+    box-shadow: 0 0 20px var(--graffiti-pink), 0 0 40px oklch(0.75 0.25 330 / 0.3);
   }
   50% {
-    box-shadow: 0 0 30px oklch(0.701 0.322 328 / 0.6), 0 0 50px oklch(0.701 0.322 328 / 0.4);
+    box-shadow: 0 0 30px var(--graffiti-pink), 0 0 60px oklch(0.75 0.25 330 / 0.6);
   }
 }
 
 .animate-pulse-glow {
   animation: pulse-glow 2s ease-in-out infinite;
+}
+
+@keyframes drip {
+  0% {
+    transform: translateY(-10px);
+    opacity: 0;
+  }
+  50% {
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(10px);
+    opacity: 0;
+  }
+}
+
+.graffiti-drip {
+  animation: drip 3s ease-in-out infinite;
+}
+
+.brick-wall {
+  background-image: 
+    linear-gradient(335deg, oklch(0.14 0.02 270 / 0.8) 23px, transparent 23px),
+    linear-gradient(155deg, oklch(0.14 0.02 270 / 0.8) 23px, transparent 23px),
+    linear-gradient(335deg, oklch(0.16 0.02 270 / 0.6) 23px, transparent 23px),
+    linear-gradient(155deg, oklch(0.16 0.02 270 / 0.6) 23px, transparent 23px);
+  background-size: 58px 58px;
+  background-position: 0px 2px, 4px 35px, 29px 31px, 34px 6px;
 }

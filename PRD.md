@@ -114,48 +114,54 @@ A comprehensive social media and content management platform designed for indepe
 
 ## Design Direction
 
-The design should evoke the energy of a late-night studio session—dark, focused, with bursts of electric color. Think neon-lit recording booth meets command center. The interface should feel like a professional tool that artists take seriously while maintaining the excitement and spontaneity of creating and dropping music.
+The design evokes the raw energy of hip-hop culture and street art—bold graffiti colors spray-painted across dark urban walls, neon tags glowing in the night, and the rebellious spirit of underground music. The interface should feel like a digital graffiti wall meets professional studio command center, where vibrant bursts of hot pink, electric cyan, and acid yellow cut through the darkness with attitude and confidence.
 
 ## Color Selection
 
-**Primary Color**: `oklch(0.35 0.18 140)` - Deep vibrant green representing growth, success, and the "go" signal to drop content
+**Primary Color**: `oklch(0.75 0.25 330)` - Vibrant hot pink/magenta representing creativity, energy, and the bold statement of dropping new music
 
 **Secondary Colors**:
-- `oklch(0.88 0.08 140)` - Soft green for supporting UI elements and secondary actions
-- `oklch(0.45 0.15 120)` - Bright lime accent for active states and highlights
+- `oklch(0.70 0.28 195)` - Electric cyan for contrast and urban neon aesthetics
+- `oklch(0.78 0.26 75)` - Acid yellow for attention-grabbing accents and highlights
+- `oklch(0.68 0.24 120)` - Bright lime for success states and growth
+- `oklch(0.72 0.26 290)` - Deep purple for depth and street art richness
 
-**Accent Color**: `oklch(0.50 0.20 15)` - Warm orange/red for destructive actions, urgent notifications, and high-energy moments
+**Accent Color**: `oklch(0.65 0.25 25)` - Warm orange/red for destructive actions, urgent notifications, and high-energy moments
+
+**Background**: `oklch(0.12 0.02 265)` - Deep dark blue-tinted black creating the night-time urban backdrop for neon colors to pop
 
 **Foreground/Background Pairings**:
-- Background `oklch(0.98 0.005 140)`: Foreground `oklch(0.20 0.12 140)` - Ratio 13.2:1 ✓
-- Primary `oklch(0.35 0.18 140)`: Primary Foreground `oklch(0.98 0.005 140)` - Ratio 6.8:1 ✓
-- Accent `oklch(0.45 0.15 120)`: Accent Foreground `oklch(0.98 0.005 140)` - Ratio 5.2:1 ✓
-- Destructive `oklch(0.50 0.20 15)`: Destructive Foreground `oklch(0.98 0.005 140)` - Ratio 4.7:1 ✓
+- Background `oklch(0.12 0.02 265)`: Foreground `oklch(0.98 0.01 90)` - Ratio 17.8:1 ✓
+- Primary `oklch(0.75 0.25 330)`: Primary Foreground `oklch(0.12 0.02 265)` - Ratio 11.2:1 ✓
+- Secondary `oklch(0.70 0.28 195)`: Secondary Foreground `oklch(0.12 0.02 265)` - Ratio 9.6:1 ✓
+- Accent `oklch(0.78 0.26 75)`: Accent Foreground `oklch(0.12 0.02 265)` - Ratio 12.4:1 ✓
 
 ## Font Selection
 
-Fonts should convey technical precision mixed with creative energy, suitable for both data-heavy interfaces and bold creative statements.
+Fonts convey the bold, loud, and unapologetic energy of hip-hop culture with graffiti-inspired display faces and strong condensed sans-serifs.
 
 **Typographic Hierarchy**:
-- **H1 (App Title "THE LAB")**: Bebas Neue Bold / 60px / Uppercase / Tight tracking / Neon glow effect
-- **H2 (Section Titles)**: Bebas Neue Regular / 28px / Uppercase / Tight tracking
-- **H3 (Card Titles)**: Bebas Neue Regular / 20px / Uppercase
-- **Body Text**: IBM Plex Sans Regular / 14px / 1.5 line height
-- **Labels**: IBM Plex Sans Bold / 12px / Uppercase / Wide tracking
-- **Monospace (URLs, Credentials)**: Fira Code Regular / 13px / Used for technical data
+- **H1 (App Title "THE LAB")**: Bebas Neue Bold / 80-96px / Uppercase / Wide tracking / Pink neon glow / Street-style drop shadow
+- **H2 (Section Titles)**: Bebas Neue Regular / 36px / Uppercase / Wide tracking / Tag-style spacing
+- **H3 (Card Titles)**: Staatliches Regular / 20px / Uppercase / Wide tracking
+- **Body Text**: Barlow Regular / 14px / 1.5 line height / Clean readability
+- **Labels**: Barlow Black / 12px / Uppercase / Wide tracking (0.1em) / Tag-style formatting
+- **Monospace (URLs, Credentials)**: Teko Medium / 14px / Technical data with street edge
+- **Alternative Display**: Rajdhani Bold / For numbers and tech-focused elements
 
 ## Animations
 
-Animations should reinforce the feeling of speed and precision—fast, snappy transitions for routine interactions, with celebratory moments (confetti, glow pulses) reserved for significant achievements like successful drops or uploads.
+Animations should feel like spray paint hitting a wall—quick, energetic bursts of motion that leave a mark. Every interaction has attitude, with bold transitions and celebratory explosions that match the spontaneity and hype of dropping new music.
 
 **Animation Principles**:
-- **Tab transitions**: Framer Motion with 200ms fade + y-axis slide for content switching
-- **Button interactions**: Scale transform (1.05x) on hover, active press state on click
-- **Progress bars**: Smooth width transitions with easing, neon glow intensifies as progress increases
-- **Upload success**: Canvas confetti burst (150 particles, 100° spread, neon colors)
-- **Hype meters**: Count-up number animations on load, progress bar fill with 300ms easing
-- **Drag & drop**: Scale increase (1.02x) and neon glow pulse when dragging over drop zone
-- **Video previews**: Smooth opacity fade when toggling play/pause states
+- **Tab transitions**: Framer Motion with 200ms fade + y-axis slide, snappy and immediate
+- **Button interactions**: Scale transform (1.05x) on hover with neon glow intensification, bold press states
+- **Progress bars**: Smooth width transitions with easing, multi-color neon glows intensify as progress increases
+- **Upload success**: Canvas confetti burst with hot pink, cyan, yellow colors (150 particles, 100° spread)
+- **Hype meters**: Count-up number animations on load with bold color pulses, progress bars fill with staggered delays
+- **Drag & drop**: Scale increase (1.02x) and pulsing pink neon glow when dragging over drop zone
+- **Video previews**: Smooth opacity fade with slight scale transforms
+- **Graffiti drip effect**: Subtle vertical drip animation on certain accent elements
 
 ## Component Selection
 
@@ -174,11 +180,19 @@ Animations should reinforce the feeling of speed and precision—fast, snappy tr
 - **Toast**: Sonner for all notifications (success, error, info)
 
 **Customizations**:
-- `.studio-card`: Glass morphism effect with `bg-card/80 backdrop-blur-sm border border-border shadow-xl`
-- `.neon-glow-magenta`: Custom box-shadow for primary actions `0 0 20px oklch(0.701 0.322 328 / 0.5)`
-- `.neon-glow-cyan`: Secondary glow `0 0 20px oklch(0.906 0.195 195 / 0.5)`
-- `.neon-glow-orange`: Accent glow `0 0 20px oklch(0.646 0.237 16 / 0.5)`
-- Custom upload drop zones with hover states, drag-over effects, and icon transformations
+- `.studio-card`: Glass morphism effect with `bg-card/90 backdrop-blur-md border-2 border-border/50 shadow-2xl` with hover state border color shift
+- `.graffiti-texture`: Diagonal crosshatch pattern overlay using repeating gradients for street art texture
+- `.spray-paint-border`: Multi-color animated gradient border using CSS border-box technique
+- `.neon-glow-pink`: Custom triple-layered box-shadow with hot pink `0 0 10px, 0 0 20px, 0 0 40px`
+- `.neon-glow-cyan`: Triple-layered cyan glow effect
+- `.neon-glow-yellow`: Triple-layered acid yellow glow effect
+- `.neon-glow-lime`: Triple-layered lime glow effect
+- `.neon-glow-purple`: Triple-layered purple glow effect
+- `.tag-style`: Font family swap to Staatliches with uppercase and letter-spacing for graffiti tag aesthetic
+- `.street-shadow`: Text shadow with 3px offset and contrasting color outline for street art depth
+- `.animated-gradient`: Multi-stop gradient with background-position animation for spray paint effect
+- `.brick-wall`: Repeating brick pattern background using multiple linear gradients
+- Custom upload drop zones with bold 4px dashed borders, hover states, drag-over effects with pink glow, and icon transformations
 
 **States**:
 - **Button Disabled**: Reduced opacity (0.5), cursor not-allowed, no hover effects

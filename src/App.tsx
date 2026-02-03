@@ -385,7 +385,7 @@ Return a JSON object with three properties: "quotable", "hype", and "story". Eac
         particleCount: 150,
         spread: 100,
         origin: { y: 0.6 },
-        colors: ['#ff00ff', '#00ffff', '#ff3366', '#ffffff']
+        colors: ['#ff0080', '#00ffff', '#ffff00', '#00ff88', '#ff00ff']
       })
 
       toast.success('DROPPED! 🚀')
@@ -451,22 +451,26 @@ Return a JSON object with three properties: "quotable", "hype", and "story". Eac
   const isNearLimit = characterCount > characterLimit * 0.9
 
   return (
-    <div className="min-h-screen bg-background text-foreground">
+    <div className="min-h-screen bg-background text-foreground brick-wall">
       <div className="max-w-7xl mx-auto p-4 md:p-6 space-y-6">
-        <header className="text-center space-y-2 pt-4">
-          <h1 className="text-5xl md:text-6xl font-bold tracking-tighter uppercase neon-glow-magenta inline-block">
+        <header className="text-center space-y-2 pt-4 pb-2">
+          <h1 className="text-6xl md:text-8xl font-bold tracking-wider uppercase neon-glow-pink inline-block street-shadow tag-style" style={{ fontFamily: 'var(--font-display)' }}>
             THE LAB
           </h1>
-          <p className="text-muted-foreground text-sm tracking-widest uppercase font-black">
-            Artist Command Center
-          </p>
+          <div className="flex items-center justify-center gap-3">
+            <div className="h-1 w-12 bg-primary rounded-full neon-glow-pink"></div>
+            <p className="text-secondary text-sm tracking-[0.3em] uppercase font-black tag-style">
+              ARTIST COMMAND CENTER
+            </p>
+            <div className="h-1 w-12 bg-secondary rounded-full neon-glow-cyan"></div>
+          </div>
         </header>
 
         <div className="flex flex-wrap gap-2 justify-center">
           <Button
             variant={currentView === 'drop' ? 'default' : 'outline'}
             onClick={() => setCurrentView('drop')}
-            className={currentView === 'drop' ? 'bg-primary text-primary-foreground' : ''}
+            className={currentView === 'drop' ? 'bg-primary text-primary-foreground neon-glow-pink font-black uppercase tracking-wider border-2 border-primary' : 'border-2 border-border/50 font-bold uppercase tracking-wide hover:border-primary/50'}
           >
             <Zap className="w-4 h-4 mr-2" />
             THE DROP
@@ -474,7 +478,7 @@ Return a JSON object with three properties: "quotable", "hype", and "story". Eac
           <Button
             variant={currentView === 'preview' ? 'default' : 'outline'}
             onClick={() => setCurrentView('preview')}
-            className={currentView === 'preview' ? 'bg-primary text-primary-foreground' : ''}
+            className={currentView === 'preview' ? 'bg-primary text-primary-foreground neon-glow-pink font-black uppercase tracking-wider border-2 border-primary' : 'border-2 border-border/50 font-bold uppercase tracking-wide hover:border-primary/50'}
           >
             <Eye className="w-4 h-4 mr-2" />
             PREVIEW
@@ -482,7 +486,7 @@ Return a JSON object with three properties: "quotable", "hype", and "story". Eac
           <Button
             variant={currentView === 'comments' ? 'default' : 'outline'}
             onClick={() => setCurrentView('comments')}
-            className={currentView === 'comments' ? 'bg-primary text-primary-foreground' : ''}
+            className={currentView === 'comments' ? 'bg-primary text-primary-foreground neon-glow-pink font-black uppercase tracking-wider border-2 border-primary' : 'border-2 border-border/50 font-bold uppercase tracking-wide hover:border-primary/50'}
           >
             <MessageCircle className="w-4 h-4 mr-2" />
             COMMENTS
@@ -490,7 +494,7 @@ Return a JSON object with three properties: "quotable", "hype", and "story". Eac
           <Button
             variant={currentView === 'calendar' ? 'default' : 'outline'}
             onClick={() => setCurrentView('calendar')}
-            className={currentView === 'calendar' ? 'bg-primary text-primary-foreground' : ''}
+            className={currentView === 'calendar' ? 'bg-primary text-primary-foreground neon-glow-pink font-black uppercase tracking-wider border-2 border-primary' : 'border-2 border-border/50 font-bold uppercase tracking-wide hover:border-primary/50'}
           >
             <Calendar className="w-4 h-4 mr-2" />
             RELEASES
@@ -498,7 +502,7 @@ Return a JSON object with three properties: "quotable", "hype", and "story". Eac
           <Button
             variant={currentView === 'studio' ? 'default' : 'outline'}
             onClick={() => setCurrentView('studio')}
-            className={currentView === 'studio' ? 'bg-accent text-accent-foreground' : ''}
+            className={currentView === 'studio' ? 'bg-accent text-accent-foreground neon-glow-yellow font-black uppercase tracking-wider border-2 border-accent' : 'border-2 border-border/50 font-bold uppercase tracking-wide hover:border-accent/50'}
           >
             <Database className="w-4 h-4 mr-2" />
             STUDIO
@@ -506,7 +510,7 @@ Return a JSON object with three properties: "quotable", "hype", and "story". Eac
           <Button
             variant={currentView === 'releases' ? 'default' : 'outline'}
             onClick={() => setCurrentView('releases')}
-            className={currentView === 'releases' ? 'bg-secondary text-secondary-foreground' : ''}
+            className={currentView === 'releases' ? 'bg-secondary text-secondary-foreground neon-glow-cyan font-black uppercase tracking-wider border-2 border-secondary' : 'border-2 border-border/50 font-bold uppercase tracking-wide hover:border-secondary/50'}
           >
             <Music className="w-4 h-4 mr-2" />
             RELEASES
@@ -514,7 +518,7 @@ Return a JSON object with three properties: "quotable", "hype", and "story". Eac
           <Button
             variant={currentView === 'vault' ? 'default' : 'outline'}
             onClick={() => setCurrentView('vault')}
-            className={currentView === 'vault' ? 'bg-primary text-primary-foreground' : ''}
+            className={currentView === 'vault' ? 'bg-primary text-primary-foreground neon-glow-pink font-black uppercase tracking-wider border-2 border-primary' : 'border-2 border-border/50 font-bold uppercase tracking-wide hover:border-primary/50'}
           >
             <Settings className="w-4 h-4 mr-2" />
             VAULT
@@ -522,7 +526,7 @@ Return a JSON object with three properties: "quotable", "hype", and "story". Eac
           <Button
             variant={currentView === 'social' ? 'default' : 'outline'}
             onClick={() => setCurrentView('social')}
-            className={currentView === 'social' ? 'bg-accent text-accent-foreground' : ''}
+            className={currentView === 'social' ? 'bg-accent text-accent-foreground neon-glow-yellow font-black uppercase tracking-wider border-2 border-accent' : 'border-2 border-border/50 font-bold uppercase tracking-wide hover:border-accent/50'}
           >
             <Users className="w-4 h-4 mr-2" />
             SOCIAL
@@ -540,17 +544,17 @@ Return a JSON object with three properties: "quotable", "hype", and "story". Eac
             >
               {!socialTokens?.instagram && !socialTokens?.tiktok && !socialTokens?.youtube && (
                 <div className="lg:col-span-3">
-                  <Alert className="border-accent bg-accent/10">
+                  <Alert className="border-2 border-accent bg-accent/10 neon-glow-yellow">
                     <Users className="w-5 h-5 text-accent" />
                     <AlertDescription className="flex items-center justify-between">
-                      <span className="text-accent font-bold">
+                      <span className="text-accent font-black uppercase tracking-wide">
                         Connect social accounts in the SOCIAL tab for real multi-platform posting
                       </span>
                       <Button
                         onClick={() => setCurrentView('social')}
                         variant="outline"
                         size="sm"
-                        className="border-accent/50 hover:bg-accent/10"
+                        className="border-2 border-accent/70 hover:bg-accent/20 font-bold uppercase"
                       >
                         Connect Now
                       </Button>
@@ -559,11 +563,11 @@ Return a JSON object with three properties: "quotable", "hype", and "story". Eac
                 </div>
               )}
 
-              <Card className="studio-card lg:col-span-2">
+              <Card className="studio-card lg:col-span-2 graffiti-texture">
                 <CardHeader>
-                  <CardTitle className="text-2xl uppercase tracking-tight flex items-center gap-2">
-                    <Zap className="w-6 h-6 text-primary" />
-                    THE DROP
+                  <CardTitle className="text-3xl uppercase tracking-wide flex items-center gap-3 tag-style">
+                    <Zap className="w-7 h-7 text-primary neon-glow-pink" />
+                    <span className="street-shadow">THE DROP</span>
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
@@ -572,10 +576,10 @@ Return a JSON object with three properties: "quotable", "hype", and "story". Eac
                     onDragLeave={handleDragLeave}
                     onDrop={handleFileDrop}
                     className={`
-                      relative border-2 border-dashed rounded transition-all
+                      relative border-4 border-dashed rounded-lg transition-all
                       ${isDragging 
-                        ? 'border-primary bg-primary/10 scale-[1.02] neon-glow-magenta' 
-                        : 'border-border hover:border-primary/50'
+                        ? 'border-primary bg-primary/20 scale-[1.02] neon-glow-pink' 
+                        : 'border-border/50 hover:border-primary/50'
                       }
                       ${mediaFile ? 'p-3' : 'p-8'}
                     `}
@@ -594,27 +598,27 @@ Return a JSON object with three properties: "quotable", "hype", and "story". Eac
                         htmlFor="media-upload"
                         className="flex flex-col items-center justify-center cursor-pointer group"
                       >
-                        <div className="w-16 h-16 rounded-full bg-muted flex items-center justify-center mb-4 group-hover:bg-primary/20 group-hover:scale-110 transition-all group-hover:neon-glow-magenta">
-                          <Upload className="w-7 h-7 text-muted-foreground group-hover:text-primary transition-colors" />
+                        <div className="w-20 h-20 rounded-lg bg-muted/50 border-2 border-dashed border-primary/30 flex items-center justify-center mb-4 group-hover:bg-primary/20 group-hover:scale-110 transition-all group-hover:neon-glow-pink group-hover:border-primary">
+                          <Upload className="w-9 h-9 text-muted-foreground group-hover:text-primary transition-colors" />
                         </div>
-                        <p className="text-base font-black text-foreground mb-2 uppercase tracking-wide">
+                        <p className="text-lg font-black text-foreground mb-2 uppercase tracking-widest tag-style">
                           Drop Your Track Here
                         </p>
-                        <p className="text-sm text-muted-foreground">
+                        <p className="text-sm text-muted-foreground font-bold uppercase tracking-wide">
                           Audio, Video, or Image • Max 200MB
                         </p>
                       </label>
                     ) : (
                       <div className="space-y-3">
-                        <div className="relative rounded overflow-hidden bg-muted border border-border">
+                        <div className="relative rounded-lg overflow-hidden bg-muted/50 border-2 border-primary/30">
                           {mediaFile.type === 'audio' && (
                             <div className="p-6 flex items-center gap-4">
-                              <div className="w-16 h-16 rounded bg-primary/20 flex items-center justify-center">
-                                <Music className="w-8 h-8 text-primary" />
+                              <div className="w-20 h-20 rounded-lg bg-gradient-to-br from-primary to-secondary flex items-center justify-center neon-glow-pink">
+                                <Music className="w-10 h-10 text-primary-foreground" />
                               </div>
                               <div className="flex-1">
-                                <p className="font-bold text-foreground">{mediaFile.file.name}</p>
-                                <p className="text-sm text-muted-foreground">
+                                <p className="font-black text-foreground text-lg uppercase tracking-wide">{mediaFile.file.name}</p>
+                                <p className="text-sm text-secondary font-bold">
                                   {(mediaFile.file.size / (1024 * 1024)).toFixed(1)} MB
                                 </p>
                               </div>
@@ -654,9 +658,9 @@ Return a JSON object with three properties: "quotable", "hype", and "story". Eac
 
                           <button
                             onClick={removeMediaFile}
-                            className="absolute top-2 right-2 w-8 h-8 rounded-full bg-destructive hover:bg-destructive/90 flex items-center justify-center transition-all hover:scale-110"
+                            className="absolute top-3 right-3 w-10 h-10 rounded-full bg-destructive hover:bg-destructive/90 flex items-center justify-center transition-all hover:scale-110 neon-glow-orange border-2 border-destructive-foreground/20"
                           >
-                            <X className="w-5 h-5 text-destructive-foreground" />
+                            <X className="w-6 h-6 text-destructive-foreground font-bold" />
                           </button>
                         </div>
                       </div>
@@ -664,11 +668,11 @@ Return a JSON object with three properties: "quotable", "hype", and "story". Eac
                   </div>
 
                   {mediaFile && isTrackRelease && (
-                    <div className="flex items-center gap-3 p-3 rounded bg-secondary/10 border border-secondary">
-                      <LinkIcon className="w-5 h-5 text-secondary" />
+                    <div className="flex items-center gap-3 p-4 rounded-lg bg-secondary/20 border-2 border-secondary/50 neon-glow-cyan">
+                      <LinkIcon className="w-6 h-6 text-secondary" />
                       <div className="flex-1">
-                        <p className="text-sm font-bold text-foreground">Smart Link Enabled</p>
-                        <p className="text-xs text-muted-foreground">
+                        <p className="text-sm font-black text-foreground uppercase tracking-wide">Smart Link Enabled</p>
+                        <p className="text-xs text-secondary font-bold">
                           Auto-generated link will be added to all posts
                         </p>
                       </div>
@@ -680,7 +684,7 @@ Return a JSON object with three properties: "quotable", "hype", and "story". Eac
                     value={content}
                     onChange={(e) => setContent(e.target.value)}
                     placeholder="Write your caption..."
-                    className="min-h-[150px] resize-none bg-muted/50 border-border focus:border-primary focus:ring-primary/50 text-base"
+                    className="min-h-[150px] resize-none bg-muted/30 border-2 border-border/50 focus:border-primary focus:ring-primary/50 text-base rounded-lg"
                   />
 
                   <div className="flex flex-wrap gap-4 items-center justify-between">
@@ -689,12 +693,12 @@ Return a JSON object with three properties: "quotable", "hype", and "story". Eac
                         <Checkbox
                           checked={platforms.includes('instagram')}
                           onCheckedChange={() => togglePlatform('instagram')}
-                          className="data-[state=checked]:bg-primary data-[state=checked]:border-primary"
+                          className="data-[state=checked]:bg-primary data-[state=checked]:border-primary border-2"
                         />
-                        <span className="text-sm font-bold uppercase flex items-center gap-1">
+                        <span className="text-sm font-black uppercase flex items-center gap-1 tag-style">
                           IG Reels
                           {socialTokens?.instagram && (
-                            <CheckCircle className="w-3 h-3 text-secondary" />
+                            <CheckCircle className="w-4 h-4 text-secondary neon-glow-cyan" />
                           )}
                         </span>
                       </label>
@@ -703,12 +707,12 @@ Return a JSON object with three properties: "quotable", "hype", and "story". Eac
                         <Checkbox
                           checked={platforms.includes('tiktok')}
                           onCheckedChange={() => togglePlatform('tiktok')}
-                          className="data-[state=checked]:bg-primary data-[state=checked]:border-primary"
+                          className="data-[state=checked]:bg-primary data-[state=checked]:border-primary border-2"
                         />
-                        <span className="text-sm font-bold uppercase flex items-center gap-1">
+                        <span className="text-sm font-black uppercase flex items-center gap-1 tag-style">
                           TikTok
                           {socialTokens?.tiktok && (
-                            <CheckCircle className="w-3 h-3 text-secondary" />
+                            <CheckCircle className="w-4 h-4 text-secondary neon-glow-cyan" />
                           )}
                         </span>
                       </label>
@@ -717,12 +721,12 @@ Return a JSON object with three properties: "quotable", "hype", and "story". Eac
                         <Checkbox
                           checked={platforms.includes('youtube')}
                           onCheckedChange={() => togglePlatform('youtube')}
-                          className="data-[state=checked]:bg-primary data-[state=checked]:border-primary"
+                          className="data-[state=checked]:bg-primary data-[state=checked]:border-primary border-2"
                         />
-                        <span className="text-sm font-bold uppercase flex items-center gap-1">
+                        <span className="text-sm font-black uppercase flex items-center gap-1 tag-style">
                           YT Shorts
                           {socialTokens?.youtube && (
-                            <CheckCircle className="w-3 h-3 text-secondary" />
+                            <CheckCircle className="w-4 h-4 text-secondary neon-glow-cyan" />
                           )}
                         </span>
                       </label>
@@ -731,107 +735,107 @@ Return a JSON object with three properties: "quotable", "hype", and "story". Eac
                         <Checkbox
                           checked={platforms.includes('twitter')}
                           onCheckedChange={() => togglePlatform('twitter')}
-                          className="data-[state=checked]:bg-primary data-[state=checked]:border-primary"
+                          className="data-[state=checked]:bg-primary data-[state=checked]:border-primary border-2"
                         />
-                        <span className="text-sm font-bold uppercase flex items-center gap-1">
+                        <span className="text-sm font-black uppercase flex items-center gap-1 tag-style">
                           X
                           {socialTokens?.twitter && (
-                            <CheckCircle className="w-3 h-3 text-secondary" />
+                            <CheckCircle className="w-4 h-4 text-secondary neon-glow-cyan" />
                           )}
                         </span>
                       </label>
                     </div>
 
-                    <div className={`text-sm font-black uppercase ${isOverLimit ? 'text-destructive' : isNearLimit ? 'text-accent' : 'text-muted-foreground'}`}>
+                    <div className={`text-sm font-black uppercase tag-style ${isOverLimit ? 'text-destructive neon-glow-orange' : isNearLimit ? 'text-accent neon-glow-yellow' : 'text-muted-foreground'}`}>
                       {characterCount} / {characterLimit}
                     </div>
                   </div>
 
-                  <Separator />
+                  <Separator className="bg-border/50" />
 
                   <div className="flex flex-col sm:flex-row gap-3">
                     <Button
                       onClick={() => setShowLyricDialog(true)}
                       variant="outline"
-                      className="flex-1 border-secondary/50 hover:bg-secondary/10 hover:border-secondary transition-all"
+                      className="flex-1 border-2 border-secondary/70 hover:bg-secondary/20 hover:border-secondary transition-all font-black uppercase tracking-wide neon-glow-cyan"
                     >
-                      <Sparkles className="w-4 h-4 mr-2" />
+                      <Sparkles className="w-5 h-5 mr-2" />
                       Extract Bars
                     </Button>
 
                     <Button
                       onClick={handlePostDrop}
-                      className="flex-1 bg-primary hover:bg-primary/90 hover:scale-105 neon-glow-magenta transition-all text-lg font-black uppercase"
+                      className="flex-1 bg-primary hover:bg-primary/90 hover:scale-105 neon-glow-pink transition-all text-xl font-black uppercase tracking-widest border-2 border-primary-foreground/10"
                       disabled={!content.trim() || platforms.length === 0 || isOverLimit || isDropping}
                       size="lg"
                     >
-                      <Zap className="w-5 h-5 mr-2" />
+                      <Zap className="w-6 h-6 mr-2" />
                       {isDropping ? 'DROPPING...' : 'DROP IT'}
                     </Button>
                   </div>
                 </CardContent>
               </Card>
 
-              <Card className="studio-card">
+              <Card className="studio-card graffiti-texture">
                 <CardHeader>
-                  <CardTitle className="text-2xl uppercase tracking-tight flex items-center gap-2">
-                    <Flame className="w-6 h-6 text-accent" />
-                    HYPE METERS
+                  <CardTitle className="text-3xl uppercase tracking-wide flex items-center gap-3 tag-style">
+                    <Flame className="w-7 h-7 text-accent neon-glow-yellow" />
+                    <span className="street-shadow">HYPE METERS</span>
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-6">
                   <div className="space-y-2">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-2">
-                        <Share2 className="w-5 h-5 text-secondary" />
-                        <span className="text-sm font-black uppercase">Shares</span>
+                        <Share2 className="w-5 h-5 text-secondary neon-glow-cyan" />
+                        <span className="text-sm font-black uppercase tag-style">Shares</span>
                       </div>
-                      <span className="text-2xl font-black tabular-nums">{metrics.shares}</span>
+                      <span className="text-3xl font-black tabular-nums text-secondary">{metrics.shares}</span>
                     </div>
-                    <Progress value={(metrics.shares / 1000) * 100} className="h-3 neon-glow-cyan" />
+                    <Progress value={(metrics.shares / 1000) * 100} className="h-4 neon-glow-cyan border border-secondary/30" />
                   </div>
 
                   <div className="space-y-2">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-2">
-                        <Flame className="w-5 h-5 text-accent" />
-                        <span className="text-sm font-black uppercase">Fire 🔥</span>
+                        <Flame className="w-5 h-5 text-accent neon-glow-yellow" />
+                        <span className="text-sm font-black uppercase tag-style">Fire 🔥</span>
                       </div>
-                      <span className="text-2xl font-black tabular-nums">{metrics.fireEmojis}</span>
+                      <span className="text-3xl font-black tabular-nums text-accent">{metrics.fireEmojis}</span>
                     </div>
-                    <Progress value={(metrics.fireEmojis / 3000) * 100} className="h-3 neon-glow-orange" />
+                    <Progress value={(metrics.fireEmojis / 3000) * 100} className="h-4 neon-glow-yellow border border-accent/30" />
                   </div>
 
                   <div className="space-y-2">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-2">
-                        <MessageCircle className="w-5 h-5 text-primary" />
-                        <span className="text-sm font-black uppercase">Comments</span>
+                        <MessageCircle className="w-5 h-5 text-primary neon-glow-pink" />
+                        <span className="text-sm font-black uppercase tag-style">Comments</span>
                       </div>
-                      <span className="text-2xl font-black tabular-nums">{metrics.comments}</span>
+                      <span className="text-3xl font-black tabular-nums text-primary">{metrics.comments}</span>
                     </div>
-                    <Progress value={(metrics.comments / 1000) * 100} className="h-3 neon-glow-magenta" />
+                    <Progress value={(metrics.comments / 1000) * 100} className="h-4 neon-glow-pink border border-primary/30" />
                   </div>
 
                   <div className="space-y-2">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-2">
-                        <TrendingUp className="w-5 h-5 text-secondary" />
-                        <span className="text-sm font-black uppercase">Engagement</span>
+                        <TrendingUp className="w-5 h-5 text-secondary neon-glow-cyan" />
+                        <span className="text-sm font-black uppercase tag-style">Engagement</span>
                       </div>
-                      <span className="text-2xl font-black tabular-nums">{metrics.engagement}%</span>
+                      <span className="text-3xl font-black tabular-nums text-secondary">{metrics.engagement}%</span>
                     </div>
-                    <Progress value={metrics.engagement} className="h-3 neon-glow-cyan" />
+                    <Progress value={metrics.engagement} className="h-4 neon-glow-cyan border border-secondary/30" />
                   </div>
                 </CardContent>
               </Card>
 
               {posts && posts.length > 0 && (
-                <Card className="studio-card lg:col-span-3">
+                <Card className="studio-card lg:col-span-3 graffiti-texture">
                   <CardHeader>
-                    <CardTitle className="text-2xl uppercase tracking-tight flex items-center gap-2">
-                      <Clock className="w-6 h-6 text-primary" />
-                      RECENT DROPS
+                    <CardTitle className="text-3xl uppercase tracking-wide flex items-center gap-3 tag-style">
+                      <Clock className="w-7 h-7 text-primary neon-glow-pink" />
+                      <span className="street-shadow">RECENT DROPS</span>
                     </CardTitle>
                   </CardHeader>
                   <CardContent>
@@ -840,11 +844,11 @@ Return a JSON object with three properties: "quotable", "hype", and "story". Eac
                         {posts.slice(0, 10).map((post) => (
                           <Card 
                             key={post.id} 
-                            className="studio-card w-[280px] flex-shrink-0 hover:border-primary/50 transition-all cursor-pointer group"
+                            className="studio-card w-[280px] flex-shrink-0 hover:border-primary/70 hover:neon-glow-pink transition-all cursor-pointer group border-2"
                           >
                             <CardContent className="p-4 space-y-3">
                               {post.media && (
-                                <div className="aspect-square rounded overflow-hidden bg-muted">
+                                <div className="aspect-square rounded-lg overflow-hidden bg-muted border-2 border-primary/20">
                                   {post.media.type === 'video' && (
                                     <video src={post.media.preview} className="w-full h-full object-cover" muted />
                                   )}
@@ -852,31 +856,31 @@ Return a JSON object with three properties: "quotable", "hype", and "story". Eac
                                     <img src={post.media.preview} alt="Post" className="w-full h-full object-cover" />
                                   )}
                                   {post.media.type === 'audio' && (
-                                    <div className="w-full h-full flex items-center justify-center">
-                                      <Music className="w-16 h-16 text-primary" />
+                                    <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-primary to-secondary">
+                                      <Music className="w-20 h-20 text-primary-foreground" />
                                     </div>
                                   )}
                                 </div>
                               )}
 
-                              <p className="text-sm line-clamp-3">{post.content}</p>
+                              <p className="text-sm line-clamp-3 font-medium">{post.content}</p>
                               
                               <div className="flex gap-2 flex-wrap">
                                 {post.platforms.map(platform => (
-                                  <Badge key={platform} variant="secondary" className="text-xs uppercase">
+                                  <Badge key={platform} variant="secondary" className="text-xs uppercase font-black tag-style border border-secondary/30">
                                     {platform}
                                   </Badge>
                                 ))}
                               </div>
 
                               {post.smartLink && (
-                                <div className="flex items-center gap-2 text-xs text-secondary">
-                                  <LinkIcon className="w-3 h-3" />
+                                <div className="flex items-center gap-2 text-xs text-secondary font-bold">
+                                  <LinkIcon className="w-4 h-4" />
                                   <span className="font-mono">{post.smartLink}</span>
                                 </div>
                               )}
 
-                              <div className="text-xs text-muted-foreground">
+                              <div className="text-xs text-muted-foreground font-bold uppercase">
                                 {new Date(post.timestamp).toLocaleDateString()}
                               </div>
                             </CardContent>
