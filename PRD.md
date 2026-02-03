@@ -13,11 +13,18 @@ This is a focused tool for cross-platform social media posting with AI assistanc
 ## Essential Features
 
 ### The Composer (Content Creation)
-- **Functionality**: Rich text area with platform-specific character counters, media upload dropzone, platform selection checkboxes, and AI remix capability
-- **Purpose**: Centralized content creation that adapts to each platform's requirements
-- **Trigger**: Main interface always visible; AI Ghostwriter triggered by button click
-- **Progression**: User types content → Selects platforms (IG/X/TikTok) → Optional: clicks Ghostwriter for AI remixes → Reviews character counts → Sends post → Confetti celebration
-- **Success Criteria**: Post data persists to KV store with timestamp, character counters update in real-time, AI generates three distinct remix styles, success state triggers visual feedback
+- **Functionality**: Rich text area with platform-specific character counters, media upload dropzone with compression/optimization, platform selection checkboxes, and AI remix capability
+- **Purpose**: Centralized content creation that adapts to each platform's requirements with optimized media delivery
+- **Trigger**: Main interface always visible; AI Ghostwriter triggered by button click; Media optimization triggered automatically or manually
+- **Progression**: User types content → Uploads media (auto-optimized if enabled) → Adjusts compression settings if needed → Selects platforms (IG/X/TikTok) → Optional: clicks Ghostwriter for AI remixes → Reviews character counts → Sends post → Confetti celebration
+- **Success Criteria**: Post data persists to KV store with timestamp, character counters update in real-time, AI generates three distinct remix styles, media is compressed efficiently, success state triggers visual feedback
+
+### Media Optimization System
+- **Functionality**: Configurable image compression with quality presets, dimension limits, format conversion, and auto-optimization on upload
+- **Purpose**: Reduce file sizes for faster uploads while maintaining visual quality
+- **Trigger**: Auto-optimizes on upload (if enabled) or manual "Optimize All" button; Settings dialog accessible via gear icon
+- **Progression**: User uploads media → Auto-optimization begins (if enabled) → Progress shown → Compression stats displayed → User can manually optimize remaining files or adjust settings → Settings persist across sessions
+- **Success Criteria**: Images compressed without visible quality loss, file size reduction shown in percentage and bytes, settings saved to KV store, optimized badge appears on processed media
 
 ### The Vault (Latest Tracks)
 - **Functionality**: Displays 3 most recent tracks with artwork, title, and release info
@@ -54,6 +61,9 @@ This is a focused tool for cross-platform social media posting with AI assistanc
 - **API Failure States**: Show retry button with clear error messaging using toast notifications
 - **Empty Post History**: Display encouraging empty state with icon and call-to-action
 - **Slow LLM Response**: Show skeleton loading states during AI generation with timeout fallback
+- **Large Media Files**: Show file size warnings for files over 100MB; automatically compress images when auto-optimize is enabled
+- **Compression Failures**: Gracefully fall back to original file if compression fails; show error toast
+- **No Images to Optimize**: Disable optimize button and show informative message when all images are already optimized or only videos are present
 
 ## Design Direction
 The design should evoke the feeling of being in a premium recording studio—dark, focused, professional—but infused with the bold energy of streetwear culture. Every surface should have depth through glassmorphism, every interaction should feel tactile and responsive, and the color palette should pop against the deep charcoal like neon signs in a night cityscape.
@@ -133,7 +143,10 @@ Key animation moments:
 - **Image**: For media upload indicator
 - **RotateCcw**: For republish action
 - **AlertCircle**: For error states
-- **Check**: For success confirmations
+- **Check**: For success confirmations and optimized badges
+- **Settings**: For compression settings dialog
+- **Gauge**: For quality/compression indicators
+- **Zap**: For optimize action (fast/electric connotation)
 
 **Spacing**:
 - Container padding: p-6 (24px) on desktop, p-4 (16px) on mobile
