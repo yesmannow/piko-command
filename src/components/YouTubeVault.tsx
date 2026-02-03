@@ -81,21 +81,24 @@ export function YouTubeVault({ onQuickShare }: YouTubeVaultProps) {
       const statsResponse = await fetch(statsUrl)
       const statsData = await statsResponse.json()
 
-      const statsMap = new Map(
-        statsData.items?.map((item: any) => [
+      const statsMap = new Map<string, string>(
+        (statsData.items as any[] || []).map((item: any) => [
           item.id,
           item.statistics?.viewCount || '0'
-        ]) || []
+        ])
       )
 
-      const fetchedVideos: YouTubeVideo[] = searchData.items.map((item: any) => ({
-        id: item.id.videoId,
-        title: item.snippet.title,
-        thumbnail: item.snippet.thumbnails.high?.url || item.snippet.thumbnails.medium?.url || item.snippet.thumbnails.default?.url,
-        url: `https://www.youtube.com/watch?v=${item.id.videoId}`,
-        publishedAt: item.snippet.publishedAt,
-        viewCount: formatViewCount(parseInt(statsMap.get(item.id.videoId) || '0'))
-      }))
+      const fetchedVideos: YouTubeVideo[] = searchData.items.map((item: any) => {
+        const viewCountStr = statsMap.get(item.id.videoId) || '0'
+        return {
+          id: item.id.videoId,
+          title: item.snippet.title,
+          thumbnail: item.snippet.thumbnails.high?.url || item.snippet.thumbnails.medium?.url || item.snippet.thumbnails.default?.url,
+          url: `https://www.youtube.com/watch?v=${item.id.videoId}`,
+          publishedAt: item.snippet.publishedAt,
+          viewCount: formatViewCount(parseInt(viewCountStr, 10))
+        }
+      })
 
       setVideos(fetchedVideos)
       toast.success(`Loaded ${fetchedVideos.length} latest videos!`)

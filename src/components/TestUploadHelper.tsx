@@ -13,24 +13,12 @@ interface TestUploadHelperProps {
 }
 
 interface VaultCredentials {
-  r2AccessKey: string
-  r2SecretKey: string
-  r2BucketName: string
-  r2AccountId: string
   githubToken: string
-  githubRepo: string
-  githubOwner: string
 }
 
 export function TestUploadHelper({ onTestComplete }: TestUploadHelperProps) {
   const [credentials] = useKV<VaultCredentials>('vault-credentials', {
-    r2AccessKey: '',
-    r2SecretKey: '',
-    r2BucketName: '',
-    r2AccountId: '',
-    githubToken: '',
-    githubRepo: '',
-    githubOwner: ''
+    githubToken: ''
   })
 
   const [isRunningTest, setIsRunningTest] = useState(false)
@@ -149,12 +137,8 @@ export function TestUploadHelper({ onTestComplete }: TestUploadHelperProps) {
       setTestStage('Checking credentials...')
       setTestProgress(10)
       
-      if (!credentials || !credentials.r2AccessKey || !credentials.r2SecretKey || !credentials.r2BucketName || !credentials.r2AccountId) {
-        throw new Error('R2 credentials not configured. Please configure in THE VAULT tab.')
-      }
-
-      if (!credentials.githubToken || !credentials.githubRepo || !credentials.githubOwner) {
-        throw new Error('GitHub credentials not configured. Please configure in THE VAULT tab.')
+      if (!credentials || !credentials.githubToken) {
+        throw new Error('GitHub token not configured. Please configure in THE VAULT tab.')
       }
 
       setTestProgress(20)
@@ -168,27 +152,27 @@ export function TestUploadHelper({ onTestComplete }: TestUploadHelperProps) {
       const coverFile = await createTestCoverImage()
       
       setTestProgress(40)
-      setTestStage('Simulating R2 upload...')
+      setTestStage('Simulating GitHub upload...')
       
       await new Promise(resolve => setTimeout(resolve, 1000))
       
       setTestProgress(60)
-      setTestStage('Simulating GitHub sync...')
+      setTestStage('Simulating metadata sync...')
       
       await new Promise(resolve => setTimeout(resolve, 1000))
       
       setTestProgress(80)
       setTestStage('Finalizing...')
       
-      const mockAudioUrl = `https://${credentials.r2BucketName}.${credentials.r2AccountId}.r2.cloudflarestorage.com/tracks/test-track-demo.wav`
-      const mockCoverUrl = `https://${credentials.r2BucketName}.${credentials.r2AccountId}.r2.cloudflarestorage.com/covers/test-cover.png`
+      const mockAudioUrl = `/audio/tracks/test-track-demo.wav`
+      const mockCoverUrl = `/images/covers/test-cover.png`
       
       setTestProgress(100)
       setTestStage('Test complete!')
       
       setTestResults({
         success: true,
-        message: 'Integration test successful! Your R2 and GitHub configuration appears valid.',
+        message: 'Integration test successful! Your GitHub configuration appears valid.',
         audioUrl: mockAudioUrl,
         coverUrl: mockCoverUrl
       })
@@ -220,14 +204,14 @@ export function TestUploadHelper({ onTestComplete }: TestUploadHelperProps) {
           </span>
         </CardTitle>
         <CardDescription>
-          Test your R2 and GitHub setup with a simulated track upload. This creates a test audio file and cover image to verify your configuration.
+          Test your GitHub setup with a simulated track upload. This creates a test audio file and cover image to verify your configuration.
         </CardDescription>
       </CardHeader>
       <CardContent className="p-6 space-y-4">
         <Alert className="border-accent/50 bg-accent/10">
           <AlertCircle className="w-5 h-5 text-accent" />
           <AlertDescription className="text-sm">
-            This test simulates the upload process without actually uploading files to R2 or GitHub. 
+            This test simulates the upload process without actually uploading files to GitHub. 
             It validates your credentials and creates demo files to test the UI flow.
           </AlertDescription>
         </Alert>

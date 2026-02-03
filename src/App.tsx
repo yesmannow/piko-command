@@ -35,8 +35,7 @@ import {
 import { YouTubeVault } from '@/components/YouTubeVault'
 import { VaultSettings } from '@/components/VaultSettings'
 import { TestUploadHelper } from '@/components/TestUploadHelper'
-import { uploadConcurrent } from '@/lib/r2Uploader'
-import { updateTracksJSON, type TrackData } from '@/lib/githubAPI'
+import { uploadAssetsToGitHub, syncTrackMetadata } from '@/lib/githubAssetUploader'
 
 interface PostHistory {
   id: string
@@ -53,18 +52,13 @@ interface CaptionVariant {
 }
 
 interface VaultCredentials {
-  r2AccessKey: string
-  r2SecretKey: string
-  r2BucketName: string
-  r2AccountId: string
   githubToken: string
-  githubRepo: string
-  githubOwner: string
 }
 
 interface TrackMetadata {
   title: string
   artist: string
+  vibe?: string
   releaseDate: string
 }
 
@@ -85,13 +79,7 @@ function App() {
   const [platforms, setPlatforms] = useState<string[]>(['instagram', 'tiktok', 'twitter'])
   const [postHistory, setPostHistory] = useKV<PostHistory[]>('piko_post_history', [])
   const [credentials] = useKV<VaultCredentials>('vault-credentials', {
-    r2AccessKey: '',
-    r2SecretKey: '',
-    r2BucketName: '',
-    r2AccountId: '',
-    githubToken: '',
-    githubRepo: '',
-    githubOwner: ''
+    githubToken: ''
   })
   const [uploadedTracks, setUploadedTracks] = useKV<UploadedTrack[]>('uploaded-tracks', [])
   
@@ -108,6 +96,7 @@ function App() {
   const [metadata, setMetadata] = useState<TrackMetadata>({
     title: '',
     artist: 'PIKO',
+    vibe: 'Hip-Hop',
     releaseDate: new Date().toISOString().split('T')[0]
   })
   const [audioUploadProgress, setAudioUploadProgress] = useState(0)
@@ -131,15 +120,7 @@ function App() {
 
   const validateCredentials = () => {
     if (!credentials) return false
-    return !!(
-      credentials.r2AccessKey &&
-      credentials.r2SecretKey &&
-      credentials.r2BucketName &&
-      credentials.r2AccountId &&
-      credentials.githubToken &&
-      credentials.githubRepo &&
-      credentials.githubOwner
-    )
+    return !!(credentials.githubToken)
   }
 
   const handleQuickShare = (videoUrl: string, videoTitle: string) => {
@@ -353,58 +334,55 @@ Voice: Authentic, Street, Technical, Energetic.`
     setCoverUploadProgress(0)
 
     try {
-      setUploadStage('Uploading files to R2...')
+      setUploadStage('Uploading files to GitHub...')
       
-      const { audioUrl, coverImageUrl } = await uploadConcurrent(
+      const { audioUrl, coverImageUrl } = await uploadAssetsToGitHub(
         selectedAudioFile,
         selectedCoverImage,
         {
-          r2AccessKey: credentials!.r2AccessKey,
-          r2SecretKey: credentials!.r2SecretKey,
-          r2BucketName: credentials!.r2BucketName,
-          r2AccountId: credentials!.r2AccountId,
+          title: metadata.title,
+          artist: metadata.artist,
+          vibe: metadata.vibe,
+          releaseDate: metadata.releaseDate
+        },
+        {
+          githubToken: credentials!.githubToken,
+          githubRepo: 'piko-artist-website-v3',
+          githubOwner: 'yesmannow',
         },
         (progress) => setAudioUploadProgress(progress),
         (progress) => setCoverUploadProgress(progress)
       )
       
       setUploadStatus('syncing')
-      setUploadStage('Syncing to GitHub...')
+      setUploadStage('Syncing track metadata...')
 
-      const trackData: TrackData = {
-        id: `track-${Date.now()}`,
-        title: metadata.title,
-        artist: metadata.artist,
-        releaseDate: metadata.releaseDate,
-        status: 'live',
-        r2: {
-          audioUrl,
-          coverImageUrl,
+      await syncTrackMetadata(
+        {
+          title: metadata.title,
+          artist: metadata.artist,
+          vibe: metadata.vibe,
+          releaseDate: metadata.releaseDate
         },
-        stats: {
-          shares: 0,
-          fireEmojis: 0,
-          comments: 0,
-          engagementRate: '0%'
+        audioUrl,
+        coverImageUrl,
+        {
+          githubToken: credentials!.githubToken,
+          githubRepo: 'piko-artist-website-v3',
+          githubOwner: 'yesmannow',
         }
-      }
-
-      await updateTracksJSON(trackData, {
-        githubToken: credentials!.githubToken,
-        githubRepo: credentials!.githubRepo,
-        githubOwner: credentials!.githubOwner,
-      })
+      )
       
       setUploadStatus('success')
       setUploadStage('Complete!')
 
       const uploadedTrack: UploadedTrack = {
-        id: trackData.id,
-        title: trackData.title,
-        artist: trackData.artist,
-        audioUrl: trackData.r2.audioUrl,
-        coverImageUrl: trackData.r2.coverImageUrl,
-        releaseDate: trackData.releaseDate,
+        id: `track-${Date.now()}`,
+        title: metadata.title,
+        artist: metadata.artist,
+        audioUrl: audioUrl,
+        coverImageUrl: coverImageUrl,
+        releaseDate: metadata.releaseDate,
         uploadedAt: Date.now()
       }
 
@@ -425,7 +403,7 @@ Voice: Authentic, Street, Technical, Energetic.`
         URL.revokeObjectURL(coverPreview)
       }
       setCoverPreview(null)
-      setMetadata({ title: '', artist: 'PIKO', releaseDate: new Date().toISOString().split('T')[0] })
+      setMetadata({ title: '', artist: 'PIKO', vibe: 'Hip-Hop', releaseDate: new Date().toISOString().split('T')[0] })
       setAudioUploadProgress(0)
       setCoverUploadProgress(0)
 
@@ -441,14 +419,14 @@ Voice: Authentic, Street, Technical, Energetic.`
       if (error instanceof Error) {
         errorMessage = error.message
         
-        if (errorMessage.includes('Access Denied') || errorMessage.includes('403')) {
-          errorMessage = 'R2 Access Denied - Check your credentials and bucket permissions'
-        } else if (errorMessage.includes('NetworkingError') || errorMessage.includes('CORS')) {
-          errorMessage = 'Network error - Ensure R2 bucket has CORS enabled for browser access'
-        } else if (errorMessage.includes('NoSuchBucket')) {
-          errorMessage = 'R2 bucket not found - Check bucket name'
-        } else if (errorMessage.includes('GitHub') || errorMessage.includes('git')) {
-          errorMessage = 'GitHub sync failed - ' + errorMessage
+        if (errorMessage.includes('Bad credentials') || errorMessage.includes('401')) {
+          errorMessage = 'GitHub authentication failed - Check your Personal Access Token'
+        } else if (errorMessage.includes('Not Found') || errorMessage.includes('404')) {
+          errorMessage = 'Repository not found - Verify repository access permissions'
+        } else if (errorMessage.includes('403') || errorMessage.includes('Forbidden')) {
+          errorMessage = 'GitHub access denied - Ensure token has repo permissions'
+        } else if (errorMessage.includes('rate limit')) {
+          errorMessage = 'GitHub API rate limit exceeded - Try again later'
         }
       }
       
@@ -477,7 +455,7 @@ Voice: Authentic, Street, Technical, Energetic.`
                 PIKO COMMAND
               </h1>
               <p className="text-xs text-zinc-500 uppercase tracking-widest font-bold mt-1">
-                Studio-to-Social · R2 Cloud · GitHub Sync · Zero-Cost Distribution
+                Studio-to-Social · GitHub Native Storage · Zero-Cost Distribution
               </p>
             </div>
             <div className="flex items-center gap-3">
@@ -777,7 +755,7 @@ Voice: Authentic, Street, Technical, Energetic.`
                 <Alert className="border-2 border-yellow-500/50 bg-yellow-500/10">
                   <AlertCircle className="w-5 h-5 text-yellow-400" />
                   <AlertDescription className="text-yellow-400 font-bold flex items-center justify-between">
-                    <span>Configure R2 and GitHub credentials in THE VAULT tab first.</span>
+                    <span>Configure GitHub credentials in THE VAULT tab first.</span>
                     <Settings className="w-4 h-4" />
                   </AlertDescription>
                 </Alert>
@@ -790,9 +768,12 @@ Voice: Authentic, Street, Technical, Energetic.`
                   <CardTitle className="text-2xl uppercase tracking-wider font-black flex items-center gap-3">
                     <Upload className="w-7 h-7 text-lime-400" />
                     <span className="bg-gradient-to-r from-lime-400 to-emerald-400 bg-clip-text text-transparent">
-                      STUDIO-TO-WEB UPLOAD
+                      GITHUB DIRECT UPLOAD
                     </span>
                   </CardTitle>
+                  <p className="text-xs text-zinc-500 mt-2">
+                    Assets upload directly to yesmannow/piko-artist-website-v3 • Zero cloud costs
+                  </p>
                 </CardHeader>
                 <CardContent className="p-6 space-y-4">
                   <div className="relative border-2 border-dashed border-zinc-700 hover:border-lime-500/50 rounded transition-all p-8">
@@ -904,13 +885,23 @@ Voice: Authentic, Street, Technical, Energetic.`
                     />
                   </div>
 
-                  <div className="grid grid-cols-2 gap-4">
+                  <div className="grid grid-cols-3 gap-4">
                     <div className="space-y-2">
                       <Label className="text-xs uppercase tracking-widest font-black text-zinc-400">Artist</Label>
                       <Input
                         value={metadata.artist}
                         onChange={(e) => setMetadata(prev => ({ ...prev, artist: e.target.value }))}
                         placeholder="Artist name"
+                        className="bg-zinc-950 border-zinc-700 focus:border-lime-500 font-medium"
+                        disabled={isUploading}
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label className="text-xs uppercase tracking-widest font-black text-zinc-400">Vibe</Label>
+                      <Input
+                        value={metadata.vibe}
+                        onChange={(e) => setMetadata(prev => ({ ...prev, vibe: e.target.value }))}
+                        placeholder="e.g., Hip-Hop"
                         className="bg-zinc-950 border-zinc-700 focus:border-lime-500 font-medium"
                         disabled={isUploading}
                       />
@@ -988,9 +979,9 @@ Voice: Authentic, Street, Technical, Energetic.`
                         <div className="space-y-2">
                           <p className="font-bold">Common issues:</p>
                           <ul className="text-xs space-y-1 list-disc list-inside">
-                            <li>Check R2 credentials are correct in THE VAULT tab</li>
-                            <li>Ensure R2 bucket has CORS enabled for browser uploads</li>
-                            <li>Verify GitHub token has repo write permissions</li>
+                            <li>Check GitHub token is correct in THE VAULT tab</li>
+                            <li>Verify token has "repo" permission scope</li>
+                            <li>Ensure repository yesmannow/piko-artist-website-v3 exists</li>
                             <li>Check browser console for detailed error messages</li>
                           </ul>
                         </div>
