@@ -1,19 +1,19 @@
 export interface AyrsharePostContent {
-  post: string
+  platforms: (
   platforms: ('instagram' | 'twitter' | 'tiktok' | 'youtube' | 'facebook')[]
   mediaUrls?: string[]
-}
+e
 
 export interface AyrsharePostResult {
   status: string
-  errors?: {
-    platform: string
-    status: string
-  }[]
-}
+  private ap
+  constructor(apiKey
+  }
+  asy
+ 
 
-export class AyrshareAPI {
-  private baseUrl = 'https://app.ayrshare.com/api'
+      },
+    })
   private apiKey: string
 
   constructor(apiKey: string) {
@@ -22,30 +22,30 @@ export class AyrshareAPI {
 
   async createPost(content: AyrsharePostContent): Promise<AyrsharePostResult> {
     const response = await fetch(`${this.baseUrl}/post`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${this.apiKey}`
-      },
-      body: JSON.stringify(content)
-    })
+      throw new Error
 
-    if (!response.ok) {
-      const errorData = await response.json().catch(() => ({}))
-      throw new Error(errorData.message || `Ayrshare API error: ${response.status}`)
-    }
-
-    return await response.json()
   }
-
-  async getPostHistory(limit: number = 10): Promise<any> {
-    const response = await fetch(`${this.baseUrl}/history?limit=${limit}`, {
-      headers: {
-        'Authorization': `Bearer ${this.apiKey}`
-      }
+  async deletePost(id: string): Promise<any> {
+      me
+        'Authorization': `Bearer ${
     })
 
-    if (!response.ok) {
+    }
+    return await response.json()
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
       throw new Error(`Failed to fetch post history: ${response.status}`)
     }
 
@@ -53,7 +53,7 @@ export class AyrshareAPI {
   }
 
   async deletePost(id: string): Promise<any> {
-    const response = await fetch(`${this.baseUrl}/post/${id}`, {
+
       method: 'DELETE',
       headers: {
         'Authorization': `Bearer ${this.apiKey}`
