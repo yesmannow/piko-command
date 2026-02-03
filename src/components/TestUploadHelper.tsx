@@ -4,7 +4,6 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Progress } from '@/components/ui/progress'
-import { Badge } from '@/components/ui/badge'
 import { toast } from 'sonner'
 import { Zap, CheckCircle, AlertCircle, Loader2, Music, Image as ImageIcon } from 'lucide-react'
 
@@ -32,6 +31,7 @@ export function TestUploadHelper({ onTestComplete }: TestUploadHelperProps) {
   } | null>(null)
 
   const createTestAudioFile = (): File => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)()
     const duration = 3
     const sampleRate = audioContext.sampleRate
@@ -144,12 +144,12 @@ export function TestUploadHelper({ onTestComplete }: TestUploadHelperProps) {
       setTestProgress(20)
       setTestStage('Creating test audio file...')
       
-      const audioFile = createTestAudioFile()
+      createTestAudioFile()
       
       setTestProgress(30)
       setTestStage('Creating test cover image...')
       
-      const coverFile = await createTestCoverImage()
+      await createTestCoverImage()
       
       setTestProgress(40)
       setTestStage('Simulating GitHub upload...')

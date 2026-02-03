@@ -37,6 +37,7 @@ export async function uploadConcurrent(
     const audioFilename = `${timestamp}_${sanitizeFilename(audioFile.name)}`
     const audioKey = `tracks/${audioFilename}`
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const uploadPromises: Promise<any>[] = []
 
     const audioUploadPromise = (async () => {

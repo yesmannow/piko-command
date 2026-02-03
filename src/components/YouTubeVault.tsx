@@ -7,7 +7,7 @@ import { Skeleton } from '@/components/ui/skeleton'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { toast } from 'sonner'
-import { Youtube, ExternalLink, Share2, Play, Loader2, RefreshCw, Settings } from 'lucide-react'
+import { Youtube, Share2, Play, Loader2, RefreshCw, Settings } from 'lucide-react'
 import { useKV } from '@github/spark/hooks'
 
 interface YouTubeVideo {
@@ -35,11 +35,15 @@ export function YouTubeVault({ onQuickShare }: YouTubeVaultProps) {
   const [tempApiKey, setTempApiKey] = useState('')
 
   useEffect(() => {
-    if (apiKey) {
-      loadYouTubeVideos()
-    } else {
-      loadMockVideos()
+    const loadVideos = () => {
+      if (apiKey) {
+        loadYouTubeVideos()
+      } else {
+        loadMockVideos()
+      }
     }
+    loadVideos()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [apiKey])
 
   const formatViewCount = (count: number): string => {
@@ -75,6 +79,7 @@ export function YouTubeVault({ onQuickShare }: YouTubeVaultProps) {
         return
       }
 
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const videoIds = searchData.items.map((item: any) => item.id.videoId).join(',')
       
       const statsUrl = `https://www.googleapis.com/youtube/v3/videos?key=${apiKey}&id=${videoIds}&part=statistics`
@@ -82,12 +87,14 @@ export function YouTubeVault({ onQuickShare }: YouTubeVaultProps) {
       const statsData = await statsResponse.json()
 
       const statsMap = new Map<string, string>(
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         (statsData.items as any[] || []).map((item: any) => [
           item.id,
           item.statistics?.viewCount || '0'
         ])
       )
 
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const fetchedVideos: YouTubeVideo[] = searchData.items.map((item: any) => {
         const viewCountStr = statsMap.get(item.id.videoId) || '0'
         return {

@@ -36,7 +36,7 @@ export function PlatformPreview({ caption, selectedPlatforms }: PlatformPreviewP
     const hashtagRegex = /#(\w+)/g
     const mentionRegex = /@(\w+)/g
 
-    let formatted = text
+    const formatted = text
       .replace(urlRegex, '<span class="text-blue-400 underline">$1</span>')
       .replace(hashtagRegex, '<span class="text-cyan-400 font-semibold">#$1</span>')
       .replace(mentionRegex, '<span class="text-blue-400 font-semibold">@$1</span>')

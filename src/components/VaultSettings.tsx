@@ -65,7 +65,7 @@ export function VaultSettings() {
         setConnectionStatus('error')
         toast.error('Connection failed - check token permissions')
       }
-    } catch (error) {
+    } catch {
       setConnectionStatus('error')
       toast.error('Connection check failed')
     } finally {

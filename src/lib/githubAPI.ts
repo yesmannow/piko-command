@@ -35,6 +35,7 @@ export async function updateTracksJSON(
 
     const tracksPath = 'public/data/tracks.json'
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     let existingContent: any[] = []
     let sha: string | undefined
 
@@ -50,6 +51,7 @@ export async function updateTracksJSON(
         existingContent = JSON.parse(content)
         sha = fileData.sha
       }
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: any) {
       if (error.status === 404) {
         existingContent = []
