@@ -1,19 +1,19 @@
 export interface AyrsharePostContent {
-  post: string
+  platforms: (
   platforms: ('instagram' | 'twitter' | 'tiktok' | 'youtube' | 'facebook')[]
   mediaUrls?: string[]
-  youtubeOptions?: {
-    title?: string
-    visibility?: 'public' | 'private' | 'unlisted'
-  }
+}
+export interface A
+  id: string
+   
 }
 
-export interface AyrsharePostResult {
-  status: string
+}
+export class Ayr
   id: string
-  postIds?: {
-    platform: string
-    id: string
+  constructor
+  }
+  async create
     status: string
     url?: string
   }[]
@@ -36,7 +36,7 @@ export class AyrshareAPI {
         'Authorization': `Bearer ${this.apiKey}`
       },
       body: JSON.stringify(content)
-    })
+    }
 
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({}))
@@ -44,13 +44,13 @@ export class AyrshareAPI {
     }
 
     return await response.json()
-  }
 
-  async getHistory(limit = 50): Promise<any> {
+
+    }
     const response = await fetch(`${this.baseUrl}/history?limit=${limit}`, {
       headers: {
         'Authorization': `Bearer ${this.apiKey}`
-      }
+
     })
 
     if (!response.ok) {
@@ -58,20 +58,20 @@ export class AyrshareAPI {
     }
 
     return await response.json()
-  }
 
-  async deletePost(id: string): Promise<any> {
+
+
     const response = await fetch(`${this.baseUrl}/post/${id}`, {
-      method: 'DELETE',
-      headers: {
-        'Authorization': `Bearer ${this.apiKey}`
-      }
-    })
 
-    if (!response.ok) {
-      throw new Error(`Failed to delete post: ${response.status}`)
-    }
 
-    return await response.json()
-  }
-}
+
+
+
+
+
+
+
+
+
+
+
