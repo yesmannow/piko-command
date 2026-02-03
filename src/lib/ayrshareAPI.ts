@@ -1,31 +1,31 @@
 export interface AyrsharePostContent {
-  post: string
+  platforms: (
   platforms: ('instagram' | 'twitter' | 'tiktok' | 'youtube' | 'facebook')[]
   mediaUrls?: string[]
 }
 
 export interface AyrsharePostResult {
   status: string
-  id?: string
-  postIds?: {
-    platform: string
-    id: string
-    status: string
-    url?: string
+    platform:
+    status: s
   }[]
-  errors?: any[]
 }
+export class Ayrsh
+  private baseUr
+  con
+  }
+ 
 
-export class AyrshareAPI {
-  private apiKey: string
-  private baseUrl = 'https://api.ayrshare.com/api'
+        'Content-Type': 'a
+      },
+    })
 
-  constructor(apiKey: string) {
-    this.apiKey = apiKey
+      throw new Error(errorData
+
   }
 
-  async createPost(content: AyrsharePostContent): Promise<AyrsharePostResult> {
-    const response = await fetch(`${this.baseUrl}/post`, {
+      headers: {
+      }
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -57,7 +57,7 @@ export class AyrshareAPI {
   }
 
   async deletePost(id: string): Promise<any> {
-    const response = await fetch(`${this.baseUrl}/post/${id}`, {
+
       method: 'DELETE',
       headers: {
         'Authorization': `Bearer ${this.apiKey}`
