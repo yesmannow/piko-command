@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useKV } from '@github/spark/hooks'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -23,17 +23,28 @@ import {
   Clock,
   Users,
   Heart,
-  MessageCircle
+  MessageCircle,
+  Upload,
+  X,
+  Play,
+  Pause
 } from 'lucide-react'
-import { motion } from 'framer-motion'
+import { motion, AnimatePresence } from 'framer-motion'
 import confetti from 'canvas-confetti'
+
+interface MediaFile {
+  id: string
+  file: File
+  preview: string
+  type: 'image' | 'video'
+}
 
 interface Post {
   id: string
   content: string
   platforms: string[]
   timestamp: number
-  mediaUrl?: string
+  media?: MediaFile[]
 }
 
 interface Track {
@@ -79,6 +90,11 @@ function App() {
   const [isGenerating, setIsGenerating] = useState(false)
   const [isSending, setIsSending] = useState(false)
   const [metrics, setMetrics] = useState({ followers: 0, engagement: 0, posts: 0 })
+  const [mediaFiles, setMediaFiles] = useState<MediaFile[]>([])
+  const [isDragging, setIsDragging] = useState(false)
+  const [playingVideo, setPlayingVideo] = useState<string | null>(null)
+  const fileInputRef = useRef<HTMLInputElement>(null)
+  const videoRefs = useRef<{ [key: string]: HTMLVideoElement | null }>({})
 
   useEffect(() => {
     setTimeout(() => {
@@ -86,12 +102,105 @@ function App() {
     }, 300)
   }, [])
 
+  useEffect(() => {
+    return () => {
+      mediaFiles.forEach(media => {
+        URL.revokeObjectURL(media.preview)
+      })
+    }
+  }, [mediaFiles])
+
   const togglePlatform = (platform: string) => {
     setPlatforms(prev => 
       prev.includes(platform) 
         ? prev.filter(p => p !== platform)
         : [...prev, platform]
     )
+  }
+
+  const handleFileSelect = (files: FileList | null) => {
+    if (!files) return
+
+    const newFiles: MediaFile[] = []
+    const maxFiles = 4
+    const currentCount = mediaFiles.length
+
+    if (currentCount >= maxFiles) {
+      toast.error(`Maximum ${maxFiles} media files allowed`)
+      return
+    }
+
+    Array.from(files).forEach((file, index) => {
+      if (currentCount + newFiles.length >= maxFiles) return
+
+      const isImage = file.type.startsWith('image/')
+      const isVideo = file.type.startsWith('video/')
+
+      if (!isImage && !isVideo) {
+        toast.error(`${file.name} is not a valid image or video`)
+        return
+      }
+
+      if (file.size > 100 * 1024 * 1024) {
+        toast.error(`${file.name} is too large (max 100MB)`)
+        return
+      }
+
+      const preview = URL.createObjectURL(file)
+      newFiles.push({
+        id: `${Date.now()}-${index}`,
+        file,
+        preview,
+        type: isImage ? 'image' : 'video'
+      })
+    })
+
+    if (newFiles.length > 0) {
+      setMediaFiles(prev => [...prev, ...newFiles])
+      toast.success(`${newFiles.length} file(s) added`)
+    }
+  }
+
+  const removeMediaFile = (id: string) => {
+    setMediaFiles(prev => {
+      const fileToRemove = prev.find(f => f.id === id)
+      if (fileToRemove) {
+        URL.revokeObjectURL(fileToRemove.preview)
+      }
+      return prev.filter(f => f.id !== id)
+    })
+  }
+
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault()
+    setIsDragging(true)
+  }
+
+  const handleDragLeave = (e: React.DragEvent) => {
+    e.preventDefault()
+    setIsDragging(false)
+  }
+
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault()
+    setIsDragging(false)
+    handleFileSelect(e.dataTransfer.files)
+  }
+
+  const toggleVideoPlay = (id: string) => {
+    const video = videoRefs.current[id]
+    if (!video) return
+
+    if (playingVideo === id) {
+      video.pause()
+      setPlayingVideo(null)
+    } else {
+      if (playingVideo && videoRefs.current[playingVideo]) {
+        videoRefs.current[playingVideo]?.pause()
+      }
+      video.play()
+      setPlayingVideo(id)
+    }
   }
 
   const getCharacterLimit = () => {
@@ -175,7 +284,8 @@ Return a JSON object with three properties: "street", "promo", and "viral". Each
         id: Date.now().toString(),
         content,
         platforms,
-        timestamp: Date.now()
+        timestamp: Date.now(),
+        media: mediaFiles.length > 0 ? mediaFiles : undefined
       }
 
       setPosts(prev => [newPost, ...(prev || [])])
@@ -190,6 +300,7 @@ Return a JSON object with three properties: "street", "promo", and "viral". Each
       toast.success('Post sent to the world! 🚀')
       setContent('')
       setPlatforms(['instagram'])
+      setMediaFiles([])
     } catch (error) {
       toast.error('Failed to send. Retry?')
     } finally {
@@ -200,6 +311,9 @@ Return a JSON object with three properties: "street", "promo", and "viral". Each
   const handleRepublish = (post: Post) => {
     setContent(post.content)
     setPlatforms(post.platforms)
+    if (post.media) {
+      setMediaFiles(post.media)
+    }
     toast.success('Post loaded into composer')
     window.scrollTo({ top: 0, behavior: 'smooth' })
   }
@@ -232,6 +346,126 @@ Return a JSON object with three properties: "street", "promo", and "viral". Each
                 placeholder="What's the vibe today?"
                 className="min-h-[200px] resize-none bg-zinc-950/50 border-zinc-800 focus:border-primary focus:ring-primary/50 text-base"
               />
+
+              <div
+                onDragOver={handleDragOver}
+                onDragLeave={handleDragLeave}
+                onDrop={handleDrop}
+                className={`
+                  relative border-2 border-dashed rounded-lg transition-all
+                  ${isDragging 
+                    ? 'border-primary bg-primary/10 scale-[1.02]' 
+                    : 'border-zinc-800 hover:border-zinc-700'
+                  }
+                  ${mediaFiles.length > 0 ? 'p-3' : 'p-6'}
+                `}
+              >
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="image/*,video/*"
+                  multiple
+                  onChange={(e) => handleFileSelect(e.target.files)}
+                  className="hidden"
+                  id="media-upload"
+                />
+
+                {mediaFiles.length === 0 ? (
+                  <label
+                    htmlFor="media-upload"
+                    className="flex flex-col items-center justify-center cursor-pointer group"
+                  >
+                    <div className="w-12 h-12 rounded-full bg-zinc-900 flex items-center justify-center mb-3 group-hover:bg-primary/20 group-hover:scale-110 transition-all">
+                      <Upload className="w-5 h-5 text-muted-foreground group-hover:text-primary transition-colors" />
+                    </div>
+                    <p className="text-sm font-medium text-foreground mb-1">
+                      Drop media here or click to upload
+                    </p>
+                    <p className="text-xs text-muted-foreground">
+                      Images & videos up to 100MB (max 4 files)
+                    </p>
+                  </label>
+                ) : (
+                  <div className="space-y-3">
+                    <div className="grid grid-cols-2 gap-3">
+                      <AnimatePresence>
+                        {mediaFiles.map((media) => (
+                          <motion.div
+                            key={media.id}
+                            initial={{ opacity: 0, scale: 0.8 }}
+                            animate={{ opacity: 1, scale: 1 }}
+                            exit={{ opacity: 0, scale: 0.8 }}
+                            className="relative group aspect-square rounded-lg overflow-hidden bg-zinc-950 border border-zinc-800"
+                          >
+                            {media.type === 'image' ? (
+                              <img
+                                src={media.preview}
+                                alt="Upload preview"
+                                className="w-full h-full object-cover"
+                              />
+                            ) : (
+                              <div className="relative w-full h-full">
+                                <video
+                                  ref={el => { videoRefs.current[media.id] = el }}
+                                  src={media.preview}
+                                  className="w-full h-full object-cover"
+                                  loop
+                                  muted
+                                  playsInline
+                                />
+                                <button
+                                  onClick={() => toggleVideoPlay(media.id)}
+                                  className="absolute inset-0 flex items-center justify-center bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity"
+                                >
+                                  {playingVideo === media.id ? (
+                                    <Pause className="w-8 h-8 text-white" />
+                                  ) : (
+                                    <Play className="w-8 h-8 text-white" />
+                                  )}
+                                </button>
+                              </div>
+                            )}
+
+                            <div className="absolute top-1 left-1">
+                              <Badge variant="secondary" className="text-xs">
+                                {media.type === 'image' ? (
+                                  <ImageIcon className="w-3 h-3 mr-1" />
+                                ) : (
+                                  <Video className="w-3 h-3 mr-1" />
+                                )}
+                                {media.type}
+                              </Badge>
+                            </div>
+
+                            <button
+                              onClick={() => removeMediaFile(media.id)}
+                              className="absolute top-1 right-1 w-6 h-6 rounded-full bg-destructive hover:bg-destructive/90 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all hover:scale-110"
+                            >
+                              <X className="w-4 h-4 text-destructive-foreground" />
+                            </button>
+
+                            <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/60 to-transparent p-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                              <p className="text-xs text-white truncate">
+                                {media.file.name}
+                              </p>
+                            </div>
+                          </motion.div>
+                        ))}
+                      </AnimatePresence>
+                    </div>
+
+                    {mediaFiles.length < 4 && (
+                      <label
+                        htmlFor="media-upload"
+                        className="flex items-center justify-center gap-2 py-2 px-4 rounded-md bg-zinc-900/50 hover:bg-zinc-900 border border-zinc-800 hover:border-primary/50 cursor-pointer transition-all group"
+                      >
+                        <Upload className="w-4 h-4 text-muted-foreground group-hover:text-primary transition-colors" />
+                        <span className="text-sm font-medium">Add more media</span>
+                      </label>
+                    )}
+                  </div>
+                )}
+              </div>
 
               <div className="flex flex-wrap gap-4 items-center justify-between">
                 <div className="flex gap-4">
@@ -445,6 +679,36 @@ Return a JSON object with three properties: "street", "promo", and "viral". Each
                       >
                         <Card className="bg-zinc-950/50 border-zinc-800 hover:border-primary/50 transition-all w-[280px] flex-shrink-0 group">
                           <CardContent className="p-4 space-y-3">
+                            {post.media && post.media.length > 0 && (
+                              <div className="grid grid-cols-2 gap-1 mb-2 rounded-md overflow-hidden">
+                                {post.media.slice(0, 4).map((media) => (
+                                  <div
+                                    key={media.id}
+                                    className="aspect-square bg-zinc-900 relative"
+                                  >
+                                    {media.type === 'image' ? (
+                                      <img
+                                        src={media.preview}
+                                        alt="Post media"
+                                        className="w-full h-full object-cover"
+                                      />
+                                    ) : (
+                                      <div className="relative w-full h-full">
+                                        <video
+                                          src={media.preview}
+                                          className="w-full h-full object-cover"
+                                          muted
+                                        />
+                                        <div className="absolute inset-0 flex items-center justify-center bg-black/30">
+                                          <Video className="w-6 h-6 text-white" />
+                                        </div>
+                                      </div>
+                                    )}
+                                  </div>
+                                ))}
+                              </div>
+                            )}
+
                             <p className="text-sm line-clamp-3">{post.content}</p>
                             
                             <div className="flex gap-2 flex-wrap">
