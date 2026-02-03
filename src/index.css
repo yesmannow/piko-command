@@ -11,40 +11,40 @@
   }
   
   h1, h2, h3, h4, h5, h6 {
-    font-family: 'Space Grotesk', sans-serif;
+    font-family: 'Bebas Neue', sans-serif;
   }
 }
 
 :root {
-  --background: oklch(0.135 0 0);
-  --foreground: oklch(0.985 0 0);
+  --background: oklch(0 0 0);
+  --foreground: oklch(1 0 0);
   
-  --card: oklch(0.185 0 0);
-  --card-foreground: oklch(0.985 0 0);
+  --card: oklch(0.15 0 0);
+  --card-foreground: oklch(1 0 0);
   
-  --popover: oklch(0.185 0 0);
-  --popover-foreground: oklch(0.985 0 0);
+  --popover: oklch(0.15 0 0);
+  --popover-foreground: oklch(1 0 0);
   
-  --primary: oklch(0.611 0.211 271.5);
-  --primary-foreground: oklch(0.985 0 0);
+  --primary: oklch(0.701 0.322 328);
+  --primary-foreground: oklch(1 0 0);
   
-  --secondary: oklch(0.906 0.175 127.5);
-  --secondary-foreground: oklch(0.135 0 0);
+  --secondary: oklch(0.906 0.195 195);
+  --secondary-foreground: oklch(0 0 0);
   
-  --muted: oklch(0.185 0 0);
-  --muted-foreground: oklch(0.544 0.011 264);
+  --muted: oklch(0.15 0 0);
+  --muted-foreground: oklch(0.5 0 0);
   
-  --accent: oklch(0.611 0.211 271.5);
-  --accent-foreground: oklch(0.985 0 0);
+  --accent: oklch(0.646 0.237 16);
+  --accent-foreground: oklch(1 0 0);
   
   --destructive: oklch(0.577 0.245 27.325);
-  --destructive-foreground: oklch(0.985 0 0);
+  --destructive-foreground: oklch(1 0 0);
   
-  --border: oklch(0.31 0.011 264);
-  --input: oklch(0.31 0.011 264);
-  --ring: oklch(0.611 0.211 271.5);
+  --border: oklch(0.25 0 0);
+  --input: oklch(0.25 0 0);
+  --ring: oklch(0.701 0.322 328);
   
-  --radius: 0.5rem;
+  --radius: 0.25rem;
 }
 
 @theme {
@@ -76,14 +76,31 @@
   --radius-full: 9999px;
 }
 
-.glass-card {
-  @apply bg-zinc-900/40 backdrop-blur-xl border border-zinc-800/50 shadow-2xl;
+.neon-glow-magenta {
+  box-shadow: 0 0 20px oklch(0.701 0.322 328 / 0.5), 0 0 40px oklch(0.701 0.322 328 / 0.3);
 }
 
-.glow-indigo {
-  box-shadow: 0 0 20px oklch(0.611 0.211 271.5 / 0.3);
+.neon-glow-cyan {
+  box-shadow: 0 0 20px oklch(0.906 0.195 195 / 0.5), 0 0 40px oklch(0.906 0.195 195 / 0.3);
 }
 
-.glow-lime {
-  box-shadow: 0 0 20px oklch(0.906 0.175 127.5 / 0.3);
+.neon-glow-orange {
+  box-shadow: 0 0 20px oklch(0.646 0.237 16 / 0.5), 0 0 40px oklch(0.646 0.237 16 / 0.3);
+}
+
+.studio-card {
+  @apply bg-card/80 backdrop-blur-sm border border-border shadow-xl;
+}
+
+@keyframes pulse-glow {
+  0%, 100% {
+    box-shadow: 0 0 20px oklch(0.701 0.322 328 / 0.3);
+  }
+  50% {
+    box-shadow: 0 0 30px oklch(0.701 0.322 328 / 0.6), 0 0 50px oklch(0.701 0.322 328 / 0.4);
+  }
+}
+
+.animate-pulse-glow {
+  animation: pulse-glow 2s ease-in-out infinite;
 }

@@ -1,58 +1,72 @@
-# PIKO COMMAND - Social Media Distribution Hub
+# THE LAB - Hip-Hop Artist Social Media Hub
 
-A hyper-modern, high-performance social media distribution hub that combines the precision of a Digital Audio Workstation with premium streetwear aesthetics, purpose-built for artist PIKO.
+A high-energy, professional social media distribution hub designed for hip-hop/rap artists. The Lab combines studio-grade workflow automation with aggressive, high-contrast aesthetics—dark backgrounds, neon accents, and bold typography that matches the intensity of the booth.
 
 **Experience Qualities**:
-1. **Empowering** - The interface should make content creation feel like producing a track in a professional studio, giving the artist complete control and confidence.
-2. **Electric** - Every interaction should feel charged with energy through responsive micro-interactions, glowing accents, and fluid animations that match the intensity of hip-hop culture.
-3. **Refined** - Despite the bold aesthetic, the UI maintains premium quality through glassmorphism, precise spacing, and thoughtful hierarchy that feels expensive and exclusive.
+1. **Aggressive** - The interface should feel like entering a recording studio booth—dark, focused, with high-contrast neon accents that demand attention and energize creativity.
+2. **Professional** - Mobile-first design with large touch targets and instant feedback, built for artists on the move who need to drop content from anywhere.
+3. **Intelligent** - AI-powered tools that understand hip-hop culture, automatically generate smart links, analyze lyrics for captions, and manage release schedules without manual tracking.
 
-**Complexity Level**: Light Application (multiple features with basic state)
-This is a focused tool for cross-platform social media posting with AI assistance, draft management, and analytics visualization. It has distinct feature areas (composer, vault, feed, metrics) but maintains a single-view dashboard approach with moderate state management needs.
+**Complexity Level**: Complex Application (advanced functionality with multiple views)
+This is a comprehensive artist workflow tool featuring multi-platform content distribution, AI lyric analysis, smart link generation, multi-format video preview, unified comment management, release calendar automation, and real-time performance visualization. It manages complex state across media uploads, platform-specific formatting, scheduled notifications, and cross-platform engagement data.
 
 ## Essential Features
 
-### The Composer (Content Creation)
-- **Functionality**: Rich text area with platform-specific character counters, media upload dropzone with compression/optimization, platform selection checkboxes, and AI remix capability
-- **Purpose**: Centralized content creation that adapts to each platform's requirements with optimized media delivery
-- **Trigger**: Main interface always visible; AI Ghostwriter triggered by button click; Media optimization triggered automatically or manually
-- **Progression**: User types content → Uploads media (auto-optimized if enabled) → Adjusts compression settings if needed → Selects platforms (IG/X/TikTok) → Optional: clicks Ghostwriter for AI remixes → Reviews character counts → Sends post → Confetti celebration
-- **Success Criteria**: Post data persists to KV store with timestamp, character counters update in real-time, AI generates three distinct remix styles, media is compressed efficiently, success state triggers visual feedback
+### The Drop Button (One-Touch Distribution)
+- **Functionality**: Single upload interface for audio/video + caption that auto-formats for Instagram Reels, TikTok, YouTube Shorts, and X simultaneously
+- **Purpose**: Eliminate platform-specific reformatting—drop once, distribute everywhere with format-specific optimization
+- **Trigger**: User clicks "THE DROP" button after uploading media and writing caption
+- **Progression**: User uploads audio/video file → Writes single caption → App auto-generates smart link → Formats caption for each platform (character limits, hashtags) → Shows multi-platform preview → User confirms → Distributes to all selected platforms → Success celebration
+- **Success Criteria**: Video auto-formats to vertical 9:16 for Reels/TikTok/Shorts, captions adapt to platform limits, smart link included in all posts, distribution completes within 10 seconds
 
-### Media Optimization System
-- **Functionality**: Configurable image compression with quality presets, dimension limits, format conversion, and auto-optimization on upload
-- **Purpose**: Reduce file sizes for faster uploads while maintaining visual quality
-- **Trigger**: Auto-optimizes on upload (if enabled) or manual "Optimize All" button; Settings dialog accessible via gear icon
-- **Progression**: User uploads media → Auto-optimization begins (if enabled) → Progress shown → Compression stats displayed → User can manually optimize remaining files or adjust settings → Settings persist across sessions
-- **Success Criteria**: Images compressed without visible quality loss, file size reduction shown in percentage and bytes, settings saved to KV store, optimized badge appears on processed media
+### Smart Music Links (Auto-Generated)
+- **Functionality**: When track is posted, automatically create a Linktree/Songwhip-style landing page and inject the link into post captions
+- **Purpose**: Drive traffic to a unified music link without manual link creation or copy-paste
+- **Trigger**: Automatically activates when user posts content marked as "track release"
+- **Progression**: User marks post as track → App generates unique short URL → Creates smart link page with Spotify/Apple Music/YouTube placeholders → Inserts link into all platform captions → Page persists and is editable
+- **Success Criteria**: Link generates in under 2 seconds, appears in all captions, landing page is mobile-responsive, links persist in KV store
 
-### The Vault (Latest Tracks)
-- **Functionality**: Displays 3 most recent tracks with artwork, title, and release info
-- **Purpose**: Keep music releases visible and accessible during content creation for cross-promotion
-- **Trigger**: Auto-loads on app mount
-- **Progression**: App loads → Mock data fetches → Cards render with glassmorphism styling → Hover reveals additional details
-- **Success Criteria**: Three track cards display with proper spacing, images load correctly, responsive on all devices
+### Visual Asset Preview (Multi-Format)
+- **Functionality**: Side-by-side previewer showing how uploaded video appears as IG Reel vs TikTok vs YouTube Short vs X video
+- **Purpose**: Catch formatting issues before posting—see exactly how the video will crop/display on each platform
+- **Trigger**: Automatically displays when video is uploaded
+- **Progression**: User uploads video → App analyzes dimensions → Displays 4 preview windows showing platform-specific crops → User can adjust framing → Confirms or re-uploads
+- **Success Criteria**: Previews render within 1 second, accurately represent platform video players, show safe zones for text/faces
 
-### Live Feed (Post History)
-- **Functionality**: Horizontal scrolling gallery of previously sent posts with republish capability
-- **Purpose**: Quick access to post history and one-click republishing
-- **Trigger**: Loads from KV store on mount; updates when new post sent
-- **Progression**: User views feed → Scrolls horizontally → Clicks post card → Option to republish appears → Confirms → Content repopulates composer
-- **Success Criteria**: Posts persist across sessions, scroll interaction is smooth, republish accurately restores content and platform selections
+### AI Lyric-to-Caption (Content Intelligence)
+- **Functionality**: Analyzes uploaded track audio/lyrics and auto-generates hard-hitting captions, punchlines, and trending rap hashtags
+- **Purpose**: Turn lyrics into viral social content without manual effort—the AI understands rap culture and creates authentic captions
+- **Trigger**: User uploads audio file or pastes lyrics into lyric input field → Clicks "Extract Bars" button
+- **Progression**: User uploads track → AI extracts/analyzes lyrics → Generates 3 caption styles (Quotable Bar, Hype Announcement, Story/Context) → Suggests trending hashtags → User selects preferred version → Caption populates composer
+- **Success Criteria**: AI identifies best quotable lyrics, suggests hashtags with 10k+ usage, generates culturally authentic language, completes in under 5 seconds
 
-### Hype Metrics (Engagement Stats)
-- **Functionality**: Visual dashboard of mock engagement metrics using progress bars and numbers
-- **Purpose**: Motivational feedback showing growth and engagement trends
-- **Trigger**: Auto-displays on load
-- **Progression**: App loads → Animated progress bars fill → Numbers count up → Hover shows detailed tooltips
-- **Success Criteria**: Animations feel smooth and energetic, metrics are visually distinct, mobile layout remains readable
+### Beat-Sync Reminders (Release Calendar)
+- **Functionality**: Tracks release dates and automatically sends notifications to post teasers at strategic times (3 days before, 1 day before, midnight of drop)
+- **Purpose**: Never miss a drop window—the app manages release marketing timing automatically
+- **Trigger**: User adds release date to track → App schedules notification sequence
+- **Progression**: User enters track title + release date → App creates reminder schedule → At trigger times, sends notification with pre-templated teaser post → User can quick-post or customize → Post goes live
+- **Success Criteria**: Notifications fire at exact scheduled times, include pre-written teaser templates, one-tap posting works, calendar syncs across devices
 
-### AI Ghostwriter (Content Remix)
-- **Functionality**: Takes user's draft and generates three stylistic variations
-- **Purpose**: Overcome writer's block and optimize content for different audiences
-- **Trigger**: User clicks "Ghostwriter" button in composer
-- **Progression**: User has draft content → Clicks Ghostwriter → Loading state → Three remix cards appear (Street Hype, Promotional, Viral) → User selects one → Content replaces draft
-- **Success Criteria**: LLM generates contextually relevant remixes, distinct tones are evident, selection smoothly replaces original text
+### Engagement Quick-Stunt (Unified Comments)
+- **Functionality**: Aggregated view of fan comments from all platforms; blast a single reply to multiple platforms simultaneously
+- **Purpose**: Engage fans across platforms without switching apps—respond once, reach everyone
+- **Trigger**: User opens "Comments" tab → Sees unified feed → Selects multiple comments → Types one reply → Blasts to all
+- **Progression**: User views comment feed (sorted by recency) → Filters by platform if desired → Selects comments to reply to → Types single response → Chooses "Blast All" or individual platforms → Reply posts to selected platforms
+- **Success Criteria**: Comments load in real-time from IG/X/TikTok, replies post within 3 seconds, blast feature sends identical reply to all selected comments
+
+### Instant Media Handling (Performance)
+- **Functionality**: High-speed upload with real-time progress bars and automatic video compression for fast distribution
+- **Purpose**: Artists need speed—no waiting 10 minutes to upload. Compress and optimize in the background while maintaining quality
+- **Trigger**: User selects media file → Upload and compression begin immediately
+- **Progression**: User drops file → Upload progress bar animates → Compression runs in parallel → Shows before/after file sizes → Completion in under 30 seconds for most files
+- **Success Criteria**: Progress bar updates smoothly, compression reduces file size by 40%+ without visual degradation, large files (100MB+) compressed to under 50MB
+
+### Hype Meters (Performance Visuals)
+- **Functionality**: Real-time visualization of engagement using animated "hype meters" instead of boring charts—shows shares, fire emojis, comments as energy bars
+- **Purpose**: Make analytics feel energizing and motivational, not analytical and dry
+- **Trigger**: Auto-loads on dashboard; updates when new engagement data arrives
+- **Progression**: User views dashboard → Hype meters animate in → Bars pulse with new activity → Hover shows exact numbers → Click for detailed breakdown
+- **Success Criteria**: Animations are fluid (60fps), meters respond to real-time data, visual language matches studio aesthetic (VU meters, spectrum analyzers)
 
 ## Edge Case Handling
 - **Empty Composer Send**: Disable send button when textarea is empty; show subtle visual feedback
@@ -66,34 +80,36 @@ This is a focused tool for cross-platform social media posting with AI assistanc
 - **No Images to Optimize**: Disable optimize button and show informative message when all images are already optimized or only videos are present
 
 ## Design Direction
-The design should evoke the feeling of being in a premium recording studio—dark, focused, professional—but infused with the bold energy of streetwear culture. Every surface should have depth through glassmorphism, every interaction should feel tactile and responsive, and the color palette should pop against the deep charcoal like neon signs in a night cityscape.
+The design should feel like stepping into a high-end recording studio at night—almost pitch black with aggressive neon accents cutting through the darkness. High contrast is key: sharp whites for text, electric neon for actions, deep blacks for backgrounds. Typography should be bold and commanding. Every interaction should feel tactile and immediate, optimized for mobile touch with large targets and instant visual feedback. This is a professional tool that looks like it belongs in a booth, not a boardroom.
 
 ## Color Selection
-The palette balances professional darkness with electric energy pops.
+Aggressive, high-contrast palette inspired by studio equipment and neon-lit city streets.
 
-- **Primary Color (Electric Indigo #6366f1 / oklch(0.611 0.211 271.5))**: Represents creativity and digital innovation; used for primary actions, focus states, and key interactive elements
-- **Secondary Color (Cyber Lime #bef264 / oklch(0.906 0.175 127.5))**: High-energy accent for success states, highlights, and attention-grabbing elements like warnings
-- **Background (Zinc-950 #09090b / oklch(0.135 0 0))**: Deep charcoal foundation that makes colors pop and creates studio-like focus
-- **Surface (Zinc-900 #18181b / oklch(0.185 0 0))**: Elevated surfaces for cards and panels with glassmorphism effects
-- **Foreground (Zinc-50 #fafafa / oklch(0.985 0 0))**: Primary text color for maximum contrast and readability
-- **Muted (Zinc-500 #71717a / oklch(0.544 0.011 264))**: Secondary text and subtle UI elements
+- **Primary Color (Electric Magenta #ff00ff / oklch(0.701 0.322 328))**: Aggressive neon accent for "THE DROP" button and critical actions—impossible to miss, demands attention
+- **Secondary Color (Neon Cyan #00ffff / oklch(0.906 0.195 195))**: Electric accent for success states, active elements, and hype visualizations
+- **Accent Color (Hot Orange #ff3366 / oklch(0.646 0.237 16))**: Warning/alert color for character limits, notifications, and engagement spikes
+- **Background (Pure Black #000000 / oklch(0 0 0))**: Absolute black background for maximum contrast and studio atmosphere
+- **Surface (Dark Gray #111111 / oklch(0.15 0 0))**: Slightly elevated surfaces for cards, maintaining dark aesthetic
+- **Foreground (Pure White #ffffff / oklch(1 0 0))**: Crisp white text for maximum readability against black
+- **Muted (Gray #666666 / oklch(0.5 0 0))**: Secondary text and disabled states
 
 **Foreground/Background Pairings**:
-- Primary (Electric Indigo #6366f1): White text (#fafafa) - Ratio 5.2:1 ✓
-- Secondary (Cyber Lime #bef264): Zinc-950 (#09090b) - Ratio 12.8:1 ✓
-- Background (Zinc-950 #09090b): Zinc-50 (#fafafa) - Ratio 18.5:1 ✓
-- Surface (Zinc-900 #18181b): Zinc-50 (#fafafa) - Ratio 16.2:1 ✓
+- Primary (Electric Magenta #ff00ff): White text (#ffffff) - Ratio 6.1:1 ✓
+- Secondary (Neon Cyan #00ffff): Black (#000000) - Ratio 12.6:1 ✓
+- Accent (Hot Orange #ff3366): White (#ffffff) - Ratio 4.8:1 ✓
+- Background (Pure Black #000000): White (#ffffff) - Ratio 21:1 ✓
+- Surface (Dark Gray #111111): White (#ffffff) - Ratio 18.2:1 ✓
 
 ## Font Selection
-Typography should bridge technical precision with street culture boldness—clean and readable for body content but impactful and commanding for headers.
+Bold, aggressive typography that commands attention—inspired by album covers and studio interfaces.
 
 - **Typographic Hierarchy**:
-  - H1 (App Title "PIKO COMMAND"): Space Grotesk Bold/32px/tight tracking (-0.02em)/uppercase - commanding presence
-  - H2 (Section Headers): Space Grotesk Bold/20px/tight tracking/uppercase - section definition
-  - H3 (Card Titles): Inter SemiBold/16px/normal tracking - content hierarchy
-  - Body (Primary Content): Inter Regular/14px/relaxed line-height (1.6) - optimal readability
-  - Caption (Metadata/Stats): Inter Medium/12px/wide tracking (0.02em) - technical precision
-  - Button Labels: Inter SemiBold/14px/normal tracking/uppercase - clear actions
+  - H1 (App Title "THE LAB"): Bebas Neue Bold/48px/ultra-tight tracking (-0.05em)/uppercase - maximum impact
+  - H2 (Section Headers): Bebas Neue/28px/tight tracking/uppercase - aggressive hierarchy
+  - H3 (Feature Labels): Inter Black/16px/wide tracking (0.05em)/uppercase - bold labels
+  - Body (Primary Content): Inter Regular/15px/relaxed line-height (1.6) - readable at mobile scale
+  - Caption (Metadata/Stats): Inter Medium/13px/wide tracking (0.03em)/uppercase - technical feel
+  - Button Labels: Inter Black/15px/normal tracking/uppercase - strong call-to-action
 
 ## Animations
 Animations should feel studio-grade—precise, purposeful, and energetic without being distracting. They reinforce the premium quality and add moments of delight during key interactions.
@@ -157,10 +173,11 @@ Key animation moments:
 - Bento grid cell min-heights: Large (400px), Medium (300px), Wide (250px), Small (200px)
 
 **Mobile**:
-- Bento grid transitions from complex layout to single-column stack
-- Horizontal Live Feed maintains scroll on mobile with snap points
-- Character counters stack vertically instead of horizontal row
-- Platform checkboxes remain horizontal with smaller touch targets
-- Ghostwriter remix cards stack vertically
-- All text sizes remain the same (already optimized for readability)
-- Bottom padding increases on mobile to account for browser chrome
+- **Mobile-First Priority**: All touch targets minimum 48px × 48px for thumb-friendly interaction
+- **Single-column Stack**: Features stack vertically with generous spacing (24px gaps)
+- **Large Action Buttons**: "THE DROP" button is full-width and 64px tall on mobile
+- **Bottom Navigation**: Fixed bottom bar on mobile for quick access to Drop/Comments/Calendar/Metrics
+- **Swipe Gestures**: Horizontal swipe between major sections, vertical scroll within
+- **Instant Feedback**: Every touch shows immediate visual response (scale/glow) within 100ms
+- **Optimized Video Previews**: Stack vertically on mobile, each preview takes 50% screen width
+- **Quick Actions**: Long-press on posts for instant republish menu
