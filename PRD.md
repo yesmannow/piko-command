@@ -40,12 +40,11 @@ PIKO COMMAND is a brutalist, technically sophisticated social media distribution
 - **Success criteria**: Default templates load on first use, custom templates persist between sessions, template categories color-coded, AI generation uses template prompt correctly, templates copy to clipboard, delete function works for custom templates only
 
 ### 5. Social Media Launchpad (Multi-Platform Distribution)
-### 5. Social Media Launchpad (Multi-Platform Distribution)
-- **Functionality**: Compose captions, select target platforms, preview across platforms, and distribute content with platform-specific handling
-- **Purpose**: Streamline multi-platform posting workflow from a single command center
-- **Trigger**: User writes caption, selects platforms, clicks "DROP IT"
-- **Progression**: Caption written → Platforms selected (IG, TikTok, X, Facebook, LinkedIn) → Optional: Platform Preview checked → Optional: Prompt template applied → "DROP IT" pressed → SocialMediaAdapter handles all distribution → Post saved to timeline → Success confetti animation
-- **Success criteria**: Caption correctly copied for clipboard platforms, share intents pre-populate with caption + link, all posts persist to timeline calendar, platform-specific handling works reliably, confetti triggers on success
+- **Functionality**: Compose captions, select target platforms, preview across platforms, and distribute content with platform-specific handling via centralized "BLAST ALL" engine
+- **Purpose**: Streamline multi-platform posting workflow from a single command center with high-performance bulk distribution
+- **Trigger**: User writes caption, selects platforms, clicks "BLAST ALL"
+- **Progression**: Caption written → Platforms selected (IG, TikTok, X, Facebook, LinkedIn) → Optional: Ghostwriter AI workflows applied → Optional: Platform Preview checked → "BLAST ALL" pressed → SocialMediaAdapter orchestrates all distributions with 500ms stagger → Clipboard-based platforms (Instagram/TikTok) copy caption automatically before opening tabs → Intent-based platforms (X, Facebook, LinkedIn) open with pre-filled share dialogs in centered popups → Post saved to timeline → Success confetti animation
+- **Success criteria**: Caption correctly copied for clipboard platforms, share intents pre-populate with caption + link, all posts persist to timeline calendar, platform-specific handling works reliably, confetti triggers on success, popups don't trigger browser blockers
 
 ### 6. GitHub-Native Asset Upload
 - **Functionality**: Direct upload of audio tracks and cover art to yesmannow/piko-artist-website-v3 repository
@@ -55,27 +54,34 @@ PIKO COMMAND is a brutalist, technically sophisticated social media distribution
 - **Success criteria**: Files successfully committed to GitHub repository, piko-tracks.json updated with new entry, progress bars show upload status, uploaded tracks persist locally, errors provide actionable feedback
 
 ### 7. AI Caption Remix (3 Styles via window.spark.llm)
-- **Functionality**: Generate three platform-optimized caption variants from user input
-- **Purpose**: Maximize engagement with AI-generated captions tailored to different audiences
-- **Trigger**: User enters base caption or video URL, clicks "REMIX AI"
-- **Progression**: Button click → LLM analyzes input → Three caption variants generated (STREET HYPE, OFFICIAL PROMO, VIRAL) → Tabbed interface displays each style → User selects preferred variant → Caption populated in main field
-- **Success criteria**: All three styles generate successfully, each has distinct voice and formatting, selection replaces composer caption, hashtags included appropriately
+- **Functionality**: Multimodal Ghostwriter AI Suite with three distinct creative workflows - Tone Shift (3 platform-optimized styles), Lyric Hook Extraction (hardest 4 lines from track lyrics), and Smart Hashtag Injection (AI-curated hashtags from vault)
+- **Purpose**: Maximize engagement with AI-generated captions tailored to different audiences and use cases
+- **Trigger**: User clicks "GHOSTWRITER AI" button in Launchpad
+- **Progression**: Button click → Glassmorphism modal opens with 3 tabs → **Tone Shift Tab**: Analyzes current caption and generates Street Hype (emoji-heavy), Official Promo (YouTube CTA-focused), and Viral Punch (ultra-short curiosity-gap) variants → **Lyric Hook Tab**: User pastes full track lyrics → AI extracts 4 hardest lines formatted as Instagram Reels caption → **Hashtag Vault Tab**: AI analyzes caption content and suggests 5-8 relevant hashtags from curated vault (Music, Energy, Promo, Community, Platform categories) → User selects preferred output → Caption applied to Launchpad composer
+- **Success criteria**: All three workflows generate successfully, each has distinct voice and formatting, hashtags strategically mixed from vault, selection replaces composer caption, modal has glassmorphism blur effect
 
-### 8. YouTube Vault Integration
+### 8. Auto-Suffix Toggle & Smart Links
+- **Functionality**: Automatic link appending with toggle control for essential URLs (Smart Link + YouTube Music channel)
+- **Purpose**: Ensure every post includes call-to-action links without manual effort
+- **Trigger**: Toggle switch in Launchpad "Auto-Suffix Links" section
+- **Progression**: Toggle enabled (default) → Every "BLAST ALL" execution appends Smart Link (track URL or website) + YouTube Music channel URL → Toggle disabled → Only Smart Link appended → User can customize Smart Link per post
+- **Success criteria**: Toggle state persists between sessions, suffix format consistent, links clickable in preview, toggle clearly indicates active/inactive state
+
+### 9. YouTube Vault Integration
 - **Functionality**: Display PIKO's latest YouTube videos with quick-share capability
 - **Purpose**: Enable easy cross-promotion of YouTube content to other platforms
 - **Trigger**: Vault displays on Launchpad view, refreshes on demand
 - **Progression**: App loads → YouTube API fetches latest 10 videos → Thumbnails, titles, view counts displayed → User clicks "Quick Share" → Video URL and title injected into caption composer → Ready for distribution
 - **Success criteria**: Real videos fetched with accurate metadata, quick-share pre-fills composer, API key configurable and persistent, graceful fallback to mock data when unconfigured
 
-### 9. GitHub Vault Settings
+### 10. GitHub Vault Settings
 - **Functionality**: Secure storage and validation of GitHub Personal Access Token
 - **Purpose**: Enable repository access for direct asset uploads and metadata sync
 - **Trigger**: User navigates to "THE VAULT" tab
 - **Progression**: Tab opened → User pastes GitHub PAT (ghp_xxx) → "Check Connection" validates token and repository access → Success/failure status displayed → Token saved to encrypted persistence → Ready for uploads
 - **Success criteria**: Token persists between sessions, connection check validates yesmannow/piko-artist-website-v3 access, masked input protects token visibility, clear setup guide provided
 
-### 10. Post Timeline Tracking
+### 11. Post Timeline Tracking
 - **Functionality**: Persistent log of all distributed posts with full context
 - **Purpose**: Content audit trail and reusable caption library
 - **Trigger**: Automatic logging on every "DROP IT" execution

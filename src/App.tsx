@@ -8,6 +8,7 @@ import { Badge } from '@/components/ui/badge'
 import { Progress } from '@/components/ui/progress'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Input } from '@/components/ui/input'
+import { Switch } from '@/components/ui/switch'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { toast } from 'sonner'
 import confetti from 'canvas-confetti'
@@ -29,7 +30,8 @@ import {
   AlertCircle,
   Database,
   Settings,
-  X
+  X,
+  Link2
 } from 'lucide-react'
 import { YouTubeVault } from '@/components/YouTubeVault'
 import { VaultSettings } from '@/components/VaultSettings'
@@ -39,6 +41,7 @@ import { PlatformPreview } from '@/components/PlatformPreview'
 import { SocialPreview } from '@/components/SocialPreview'
 import { PromptLibrary } from '@/components/PromptLibrary'
 import { HypeCalendar } from '@/components/HypeCalendar'
+import { GhostwriterModal } from '@/components/GhostwriterModal'
 import { uploadAssetsToGitHub, syncTrackMetadata } from '@/lib/githubAssetUploader'
 import { SocialMediaAdapter, type Platform } from '@/lib/SocialMediaAdapter'
 
@@ -89,11 +92,10 @@ function App() {
   const [uploadedTracks, setUploadedTracks] = useKV<UploadedTrack[]>('uploaded-tracks', [])
   
   const [isPosting, setIsPosting] = useState(false)
-  const [isGenerating, setIsGenerating] = useState(false)
-  const [generatedCaptions, setGeneratedCaptions] = useState<CaptionVariant | null>(null)
-  const [showCaptionDialog, setShowCaptionDialog] = useState(false)
+  const [showGhostwriter, setShowGhostwriter] = useState(false)
   const [showPlatformPreview, setShowPlatformPreview] = useState(false)
   const [showPromptLibrary, setShowPromptLibrary] = useState(false)
+  const [autoSuffixEnabled, setAutoSuffixEnabled] = useKV<boolean>('auto-suffix-enabled', true)
   const [currentView, setCurrentView] = useState<'composer' | 'history' | 'studio' | 'vault'>('composer')
   const [stats, setStats] = useState({ posts: 0, platforms: 0, engagement: 0 })
   const [smartLink, setSmartLink] = useState<string>(PIKO_WEBSITE)
@@ -154,45 +156,7 @@ function App() {
     )
   }
 
-  const generateCaptions = async () => {
-    if (!caption.trim()) {
-      toast.error('Enter a video link or draft caption first!')
-      return
-    }
 
-    setIsGenerating(true)
-
-    try {
-      const promptText = `You are the Creative Director for PIKO, a YouTube-focused hip-hop artist. Generate 3 caption styles for this content:
-
-INPUT: ${caption}
-
-Generate exactly 3 caption styles optimized for different platforms. Return a JSON object with these exact keys:
-
-1. "hype": Street-level energy, heavy on emojis (🔥, 💿, 🚀). Focus on excitement and energy. Include #PikoMusic #NewHipHop #YouTubeMusic. Keep under 200 characters.
-2. "promo": Clean, professional, call-to-action focused. Clear message with strong CTA. Include relevant hashtags. Keep under 200 characters.
-3. "viral": Short, punchy, designed for TikTok/X. Maximum engagement focus. Under 150 characters.
-
-Voice: Authentic, Street, Technical, Energetic.`
-
-      const response = await window.spark.llm(promptText, 'gpt-4o-mini', true)
-      const result = JSON.parse(response)
-
-      setGeneratedCaptions({
-        hype: result.hype || '',
-        promo: result.promo || '',
-        viral: result.viral || ''
-      })
-
-      setShowCaptionDialog(true)
-      toast.success('3 caption styles generated!')
-    } catch (error) {
-      toast.error('AI generation failed. Try again!')
-      console.error(error)
-    } finally {
-      setIsGenerating(false)
-    }
-  }
 
   const handleUsePrompt = async (promptText: string) => {
     if (!caption.trim()) {
@@ -200,7 +164,6 @@ Voice: Authentic, Street, Technical, Energetic.`
       return
     }
 
-    setIsGenerating(true)
     setShowPromptLibrary(false)
 
     try {
@@ -211,16 +174,6 @@ Voice: Authentic, Street, Technical, Energetic.`
     } catch (error) {
       toast.error('AI generation failed. Try again!')
       console.error(error)
-    } finally {
-      setIsGenerating(false)
-    }
-  }
-
-  const selectCaption = (variant: keyof CaptionVariant) => {
-    if (generatedCaptions) {
-      setCaption(generatedCaptions[variant])
-      setShowCaptionDialog(false)
-      toast.success('Caption applied!')
     }
   }
 
@@ -238,7 +191,14 @@ Voice: Authentic, Street, Technical, Energetic.`
     setIsPosting(true)
 
     try {
-      const finalCaption = `${caption}\n\n🔗 ${smartLink}`
+      let finalCaption = caption
+
+      if (autoSuffixEnabled) {
+        const suffix = `\n\n🔗 ${smartLink}\n🎵 YouTube Music: https://youtube.com/@pikomusic`
+        finalCaption = `${caption}${suffix}`
+      } else {
+        finalCaption = `${caption}\n\n🔗 ${smartLink}`
+      }
 
       await SocialMediaAdapter.blastToAll(platforms as Platform[], {
         caption: finalCaption,
@@ -612,49 +572,30 @@ Voice: Authentic, Street, Technical, Energetic.`
 
                   <div className="h-px bg-gradient-to-r from-transparent via-zinc-800 to-transparent" />
 
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                     <Button
-                      onClick={generateCaptions}
-                      disabled={isGenerating || !caption.trim()}
+                      onClick={() => setShowGhostwriter(true)}
                       variant="outline"
                       className="border-2 border-emerald-600/70 hover:bg-emerald-500/10 hover:border-emerald-500 transition-all font-black uppercase tracking-wide active:scale-95"
                     >
-                      {isGenerating ? (
-                        <>
-                          <Loader2 className="w-5 h-5 mr-2 animate-spin" />
-                          REMIXING...
-                        </>
-                      ) : (
-                        <>
-                          <Sparkles className="w-5 h-5 mr-2" />
-                          REMIX AI
-                        </>
-                      )}
-                    </Button>
-
-                    <Button
-                      onClick={() => setShowPromptLibrary(!showPromptLibrary)}
-                      variant="outline"
-                      className="border-2 border-purple-600/70 hover:bg-purple-500/10 hover:border-purple-500 transition-all font-black uppercase tracking-wide active:scale-95"
-                    >
                       <Sparkles className="w-5 h-5 mr-2" />
-                      TEMPLATES
+                      GHOSTWRITER AI
                     </Button>
 
                     <Button
                       onClick={handlePostSubmit}
                       disabled={!caption.trim() || platforms.length === 0 || isPosting}
-                      className="bg-lime-400 hover:bg-lime-500 text-zinc-950 font-black uppercase tracking-widest text-lg border-2 border-lime-400 shadow-2xl shadow-lime-400/40 active:scale-95 transition-all h-12 md:col-span-1"
+                      className="bg-lime-400 hover:bg-lime-500 text-zinc-950 font-black uppercase tracking-widest text-lg border-2 border-lime-400 shadow-2xl shadow-lime-400/40 active:scale-95 transition-all h-12"
                     >
                       {isPosting ? (
                         <>
                           <Loader2 className="w-6 h-6 mr-2 animate-spin" />
-                          LAUNCHING...
+                          BLASTING...
                         </>
                       ) : (
                         <>
                           <Send className="w-6 h-6 mr-2" />
-                          DROP IT
+                          BLAST ALL
                         </>
                       )}
                     </Button>
@@ -668,6 +609,29 @@ Voice: Authentic, Street, Technical, Energetic.`
                     <ExternalLink className="w-5 h-5 mr-2" />
                     {showPlatformPreview ? 'HIDE' : 'SHOW'} PLATFORM PREVIEW
                   </Button>
+
+                  <div className="p-4 rounded-lg border-2 border-zinc-800 bg-zinc-900/30 space-y-3">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <Link2 className="w-4 h-4 text-lime-400" />
+                        <Label className="text-xs font-black uppercase tracking-wider text-zinc-400 cursor-pointer" htmlFor="auto-suffix">
+                          Auto-Suffix Links
+                        </Label>
+                      </div>
+                      <Switch
+                        id="auto-suffix"
+                        checked={autoSuffixEnabled}
+                        onCheckedChange={setAutoSuffixEnabled}
+                      />
+                    </div>
+                    {autoSuffixEnabled && (
+                      <div className="p-2 rounded border border-lime-600/30 bg-lime-500/5">
+                        <p className="text-xs text-zinc-500">
+                          Auto-appends: <span className="text-lime-400 font-mono">Smart Link + YouTube Music</span>
+                        </p>
+                      </div>
+                    )}
+                  </div>
 
                   <div className="p-4 rounded-lg border-2 border-zinc-800 bg-zinc-900/30 space-y-2">
                     <p className="text-xs font-black uppercase tracking-wider text-zinc-400 flex items-center gap-2">
@@ -684,48 +648,6 @@ Voice: Authentic, Street, Technical, Energetic.`
                   </div>
                 </CardContent>
               </Card>
-
-              {showCaptionDialog && generatedCaptions && (
-                <Card className="bento-item-ai border-2 border-lime-500/50 bg-zinc-950/95 backdrop-blur-xl shadow-2xl shadow-lime-500/20">
-                  <CardHeader className="border-b border-zinc-800/50">
-                    <CardTitle className="text-xl uppercase tracking-wider font-black flex items-center gap-3">
-                      <Sparkles className="w-6 h-6 text-lime-400" />
-                      <span className="bg-gradient-to-r from-lime-400 to-emerald-400 bg-clip-text text-transparent">
-                        REMIX RESULTS
-                      </span>
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent className="p-6">
-                    <Tabs defaultValue="hype" className="w-full">
-                      <TabsList className="grid w-full grid-cols-3 bg-zinc-900/50 border-2 border-zinc-800">
-                        <TabsTrigger value="hype" className="font-bold uppercase text-xs data-[state=active]:bg-lime-400 data-[state=active]:text-zinc-950">
-                          STREET HYPE
-                        </TabsTrigger>
-                        <TabsTrigger value="promo" className="font-bold uppercase text-xs data-[state=active]:bg-lime-400 data-[state=active]:text-zinc-950">
-                          OFFICIAL PROMO
-                        </TabsTrigger>
-                        <TabsTrigger value="viral" className="font-bold uppercase text-xs data-[state=active]:bg-lime-400 data-[state=active]:text-zinc-950">
-                          VIRAL
-                        </TabsTrigger>
-                      </TabsList>
-
-                      {(['hype', 'promo', 'viral'] as const).map(variant => (
-                        <TabsContent key={variant} value={variant} className="mt-4 space-y-3">
-                          <div className="p-4 rounded-lg border-2 border-zinc-800 bg-zinc-900/30">
-                            <p className="text-sm leading-relaxed">{generatedCaptions[variant]}</p>
-                          </div>
-                          <Button
-                            onClick={() => selectCaption(variant)}
-                            className="w-full bg-lime-400 hover:bg-lime-500 text-zinc-950 font-black uppercase tracking-wider active:scale-95 transition-all"
-                          >
-                            USE THIS CAPTION
-                          </Button>
-                        </TabsContent>
-                      ))}
-                    </Tabs>
-                  </CardContent>
-                </Card>
-              )}
 
               {showPromptLibrary && (
                 <div className="bento-item-ai">
@@ -1240,6 +1162,16 @@ Voice: Authentic, Street, Technical, Energetic.`
           )}
         </AnimatePresence>
       </div>
+
+      <GhostwriterModal
+        open={showGhostwriter}
+        onOpenChange={setShowGhostwriter}
+        onCaptionSelect={(newCaption) => {
+          setCaption(newCaption)
+          setShowGhostwriter(false)
+        }}
+        currentCaption={caption}
+      />
     </div>
   )
 }
