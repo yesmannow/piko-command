@@ -138,6 +138,7 @@ export async function syncTrackMetadata(
 
     const TRACKS_JSON_PATH = 'src/data/piko-tracks.json'
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     let existingTracks: any[] = []
     let sha: string | undefined
 
@@ -153,6 +154,7 @@ export async function syncTrackMetadata(
         const content = Buffer.from(fileData.content, 'base64').toString('utf-8')
         existingTracks = JSON.parse(content)
       }
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: any) {
       if (error.status !== 404) {
         throw error

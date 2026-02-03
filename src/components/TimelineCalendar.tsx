@@ -27,6 +27,7 @@ interface TimelineCalendarProps {
   posts: PostHistory[]
 }
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const platformIcons: Record<string, { icon: React.ComponentType<any>; color: string }> = {
   instagram: { icon: InstagramLogo, color: 'text-pink-400' },
   tiktok: { icon: TiktokLogo, color: 'text-cyan-400' },
@@ -87,7 +88,7 @@ export function TimelineCalendar({ posts }: TimelineCalendarProps) {
           </div>
 
           <div className="space-y-3 pl-0 md:pl-8">
-            {groupedByDate[date].map((post, idx) => {
+            {groupedByDate[date].map((post) => {
               const time = new Date(post.timestamp).toLocaleTimeString('en-US', {
                 hour: '2-digit',
                 minute: '2-digit'

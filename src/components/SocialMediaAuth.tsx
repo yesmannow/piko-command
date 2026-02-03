@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { useKV } from '@github/spark/hooks'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
@@ -12,19 +12,15 @@ import { toast } from 'sonner'
 import { 
   Instagram, 
   Youtube, 
-  Link as LinkIcon,
   CheckCircle, 
-  AlertCircle, 
   Eye, 
   EyeOff, 
-  Save, 
   Info, 
   ChevronDown,
   LogIn,
   LogOut,
   Music,
   Sparkles,
-  Video,
   Facebook
 } from 'lucide-react'
 
@@ -104,25 +100,10 @@ export function SocialMediaAuth() {
     facebookSecret: false
   })
   const [showSetupGuide, setShowSetupGuide] = useState(false)
-  const [isConnecting, setIsConnecting] = useState<string | null>(null)
 
-  useEffect(() => {
-    const handleAuthCallback = () => {
-      const params = new URLSearchParams(window.location.search)
-      const code = params.get('code')
-      const platform = params.get('state')
-
-      if (code && platform) {
-        handleOAuthCallback(platform, code)
-        window.history.replaceState({}, document.title, window.location.pathname)
-      }
-    }
-
-    handleAuthCallback()
-  }, [])
-
+  // OAuth callback handler for future use when OAuth flow is implemented
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const handleOAuthCallback = async (platform: string, code: string) => {
-    setIsConnecting(platform)
     try {
       switch (platform) {
         case 'instagram':
@@ -276,11 +257,6 @@ export function SocialMediaAuth() {
     if (!appCredentials?.facebook) {
       throw new Error('Facebook credentials not configured')
     }
-
-    const tokenResponse = await fetch('https://graph.facebook.com/v18.0/oauth/access_token', {
-      method: 'GET',
-      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-    })
 
     const tokenUrl = new URL('https://graph.facebook.com/v18.0/oauth/access_token')
     tokenUrl.searchParams.append('client_id', appCredentials.facebook.appId)
@@ -463,7 +439,7 @@ export function SocialMediaAuth() {
   }
 
   const simulateConnection = (platform: string) => {
-    const mockTokens: Record<string, any> = {
+    const mockTokens: SocialMediaTokens = {
       instagram: {
         accessToken: 'demo_ig_token_' + Date.now(),
         userId: 'demo_user_123',
@@ -496,7 +472,7 @@ export function SocialMediaAuth() {
 
     setTokens((current) => ({
       ...current,
-      [platform]: mockTokens[platform]
+      [platform]: mockTokens[platform as keyof SocialMediaTokens]
     }))
 
     toast.success(`${platform.charAt(0).toUpperCase() + platform.slice(1)} connected (demo mode)!`)

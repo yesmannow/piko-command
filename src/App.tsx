@@ -28,7 +28,6 @@ import {
   CheckCircle,
   AlertCircle,
   Database,
-  Github,
   Settings,
   X
 } from 'lucide-react'

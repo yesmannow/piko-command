@@ -312,7 +312,7 @@ export function TrackManager() {
         setUploadStatus('idle')
         setUploadStage('')
       }, 3000)
-    } catch (error) {
+    } catch {
       setUploadStatus('error')
       setUploadStage('Demo upload failed')
       toast.error('Demo upload failed')

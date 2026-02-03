@@ -9,10 +9,8 @@ import { Badge } from '@/components/ui/badge'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
 import { toast } from 'sonner'
 import { 
-  Sparkles, 
   Plus, 
   Trash2, 
-  Edit2, 
   Copy,
   BookOpen,
   Zap
@@ -69,7 +67,6 @@ const defaultPrompts: PromptTemplate[] = [
 export function PromptLibrary({ onUsePrompt }: PromptLibraryProps) {
   const [customPrompts, setCustomPrompts] = useKV<PromptTemplate[]>('prompt-library', [])
   const [isCreating, setIsCreating] = useState(false)
-  const [editingPrompt, setEditingPrompt] = useState<PromptTemplate | null>(null)
   
   const [newPrompt, setNewPrompt] = useState({
     name: '',
@@ -110,7 +107,7 @@ export function PromptLibrary({ onUsePrompt }: PromptLibraryProps) {
     try {
       await navigator.clipboard.writeText(prompt)
       toast.success('Prompt copied to clipboard')
-    } catch (err) {
+    } catch {
       toast.error('Failed to copy')
     }
   }
