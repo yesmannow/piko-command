@@ -6,9 +6,11 @@ import { Label } from '@/components/ui/label'
 import { Button } from '@/components/ui/button'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { toast } from 'sonner'
-import { Github, Eye, EyeOff, Save, CheckCircle, AlertCircle, ChevronDown, Info, Loader2 } from 'lucide-react'
+import { Github, Eye, EyeOff, Save, CheckCircle, AlertCircle, ChevronDown, Info, Loader2, Link2, Settings as SettingsIcon } from 'lucide-react'
 import { checkGitHubConnection } from '@/lib/githubAssetUploader'
+import { SocialConnectHub } from '@/components/SocialConnectHub'
 
 interface VaultCredentials {
   githubToken: string
@@ -78,7 +80,25 @@ export function VaultSettings() {
   }
 
   return (
-    <div className="space-y-6">
+    <Tabs defaultValue="github" className="w-full">
+      <TabsList className="grid w-full grid-cols-2 bg-zinc-900/50 border-2 border-zinc-800 mb-6">
+        <TabsTrigger 
+          value="github" 
+          className="data-[state=active]:bg-lime-500/20 data-[state=active]:text-lime-400 font-bold uppercase flex items-center gap-2"
+        >
+          <Github className="w-4 h-4" />
+          GitHub Storage
+        </TabsTrigger>
+        <TabsTrigger 
+          value="social" 
+          className="data-[state=active]:bg-lime-500/20 data-[state=active]:text-lime-400 font-bold uppercase flex items-center gap-2"
+        >
+          <Link2 className="w-4 h-4" />
+          Social Integrations
+        </TabsTrigger>
+      </TabsList>
+
+      <TabsContent value="github" className="space-y-6">
       <Alert className={isConfigured() ? 'border-secondary bg-secondary/10' : 'border-accent bg-accent/10'}>
         <div className="flex items-center gap-2">
           {isConfigured() ? (
@@ -237,6 +257,11 @@ export function VaultSettings() {
         <Save className="w-5 h-5 mr-2" />
         SAVE VAULT
       </Button>
-    </div>
+      </TabsContent>
+
+      <TabsContent value="social">
+        <SocialConnectHub />
+      </TabsContent>
+    </Tabs>
   )
 }

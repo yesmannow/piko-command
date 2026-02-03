@@ -74,10 +74,17 @@ PIKO COMMAND is a brutalist, technically sophisticated social media distribution
 - **Progression**: App loads → YouTube API fetches latest 10 videos → Thumbnails, titles, view counts displayed → User clicks "Quick Share" → Video URL and title injected into caption composer → Ready for distribution
 - **Success criteria**: Real videos fetched with accurate metadata, quick-share pre-fills composer, API key configurable and persistent, graceful fallback to mock data when unconfigured
 
-### 10. GitHub Vault Settings
+### 10. Integration Hub (Social Media Credential Management)
+- **Functionality**: Secure credential storage and connection management for Twitter, Instagram, and TikTok API integrations with connection status tracking
+- **Purpose**: Enable direct API posting to social platforms when credentials are configured, with fallback to browser intents
+- **Trigger**: User navigates to "THE VAULT" tab → "Social Integrations" sub-tab
+- **Progression**: Tab opened → Platform connection cards display (Twitter, Instagram, TikTok) → Each shows CONNECTED/DISCONNECTED status with live indicator → User clicks platform card → Credential input fields appear (API keys, tokens, secrets) → "TEST & CONNECT" validates credentials → If successful, platform marked CONNECTED with green badge → Credentials encrypted and stored in useKV → "SAVE ALL CREDENTIALS" persists configuration → Future posts use API when connected, browser intents when not
+- **Success criteria**: Credentials stored securely in browser, connection testing works per platform, status badges accurate, security warnings displayed, fields support show/hide for secrets, demo mode available for testing UI
+
+### 11. GitHub Vault Settings
 - **Functionality**: Secure storage and validation of GitHub Personal Access Token
 - **Purpose**: Enable repository access for direct asset uploads and metadata sync
-- **Trigger**: User navigates to "THE VAULT" tab
+- **Trigger**: User navigates to "THE VAULT" tab → "GitHub Storage" sub-tab
 - **Progression**: Tab opened → User pastes GitHub PAT (ghp_xxx) → "Check Connection" validates token and repository access → Success/failure status displayed → Token saved to encrypted persistence → Ready for uploads
 - **Success criteria**: Token persists between sessions, connection check validates yesmannow/piko-artist-website-v3 access, masked input protects token visibility, clear setup guide provided
 
