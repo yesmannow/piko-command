@@ -10,6 +10,8 @@ import { Alert, AlertDescription } from '@/components/ui/alert'
 import { toast } from 'sonner'
 import { Upload, Music, CheckCircle, ExternalLink, Loader2, Globe, AlertCircle, Settings, Sparkles, Image as ImageIcon, X } from 'lucide-react'
 import confetti from 'canvas-confetti'
+import { uploadConcurrent } from '@/lib/r2Uploader'
+import { updateTracksJSON, type TrackData } from '@/lib/githubAPI'
 
 interface VaultCredentials {
   r2AccessKey: string
@@ -57,9 +59,10 @@ export function TrackManager() {
     artist: 'PIKO',
     releaseDate: new Date().toISOString().split('T')[0]
   })
-  const [uploadProgress, setUploadProgress] = useState(0)
+  const [audioUploadProgress, setAudioUploadProgress] = useState(0)
+  const [coverUploadProgress, setCoverUploadProgress] = useState(0)
   const [isUploading, setIsUploading] = useState(false)
-  const [uploadStatus, setUploadStatus] = useState<'idle' | 'uploading' | 'syncing' | 'success' | 'error'>('idle')
+  const [uploadStatus, setUploadStatus] = useState<'idle' | 'uploading-audio' | 'uploading-cover' | 'syncing' | 'success' | 'error'>('idle')
   const [uploadStage, setUploadStage] = useState<string>('')
   const audioFileInputRef = useRef<HTMLInputElement>(null)
   const coverImageInputRef = useRef<HTMLInputElement>(null)
@@ -124,83 +127,6 @@ export function TrackManager() {
     setCoverPreview(null)
   }
 
-  const uploadToR2 = async (file: File, prefix: string): Promise<string> => {
-    if (!credentials) throw new Error('Missing credentials')
-
-    const cleanFileName = file.name.replace(/[^a-zA-Z0-9.-]/g, '_')
-    const fileName = `${prefix}/${Date.now()}-${cleanFileName}`
-    const endpoint = `https://${credentials.r2AccountId}.r2.cloudflarestorage.com/${credentials.r2BucketName}/${fileName}`
-
-    const authString = btoa(`${credentials.r2AccessKey}:${credentials.r2SecretKey}`)
-    
-    const response = await fetch(endpoint, {
-      method: 'PUT',
-      headers: {
-        'Authorization': `Basic ${authString}`,
-        'Content-Type': file.type
-      },
-      body: file
-    })
-
-    if (!response.ok) {
-      throw new Error(`R2 upload failed: ${response.statusText}`)
-    }
-
-    return `https://pub-${credentials.r2AccountId}.r2.dev/${fileName}`
-  }
-
-  const updateGitHubRepo = async (trackData: UploadedTrack) => {
-    if (!credentials) throw new Error('Missing credentials')
-
-    const filePath = 'tracks.json'
-    const repoUrl = `https://api.github.com/repos/${credentials.githubOwner}/${credentials.githubRepo}/contents/${filePath}`
-
-    let currentSHA = ''
-    let currentTracks: UploadedTrack[] = []
-
-    try {
-      const getResponse = await fetch(repoUrl, {
-        headers: {
-          'Authorization': `Bearer ${credentials.githubToken}`,
-          'Accept': 'application/vnd.github.v3+json'
-        }
-      })
-
-      if (getResponse.ok) {
-        const data = await getResponse.json()
-        currentSHA = data.sha
-        const content = atob(data.content)
-        currentTracks = JSON.parse(content)
-      }
-    } catch (error) {
-      currentTracks = []
-    }
-
-    currentTracks.unshift(trackData)
-
-    const newContent = btoa(JSON.stringify(currentTracks, null, 2))
-
-    const updateResponse = await fetch(repoUrl, {
-      method: 'PUT',
-      headers: {
-        'Authorization': `Bearer ${credentials.githubToken}`,
-        'Accept': 'application/vnd.github.v3+json',
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        message: `Add track: ${trackData.title}`,
-        content: newContent,
-        sha: currentSHA || undefined
-      })
-    })
-
-    if (!updateResponse.ok) {
-      throw new Error(`GitHub update failed: ${updateResponse.statusText}`)
-    }
-
-    return true
-  }
-
   const handleUpload = async () => {
     if (!selectedAudioFile) {
       toast.error('Select an audio file first')
@@ -218,48 +144,67 @@ export function TrackManager() {
     }
 
     setIsUploading(true)
-    setUploadStatus('uploading')
-    setUploadProgress(0)
+    setUploadStatus('uploading-audio')
+    setAudioUploadProgress(0)
+    setCoverUploadProgress(0)
 
     try {
-      setUploadStage('Uploading audio to R2...')
-      setUploadProgress(15)
-
-      const uploadPromises: Promise<string>[] = [
-        uploadToR2(selectedAudioFile, 'tracks')
-      ]
-
-      if (selectedCoverImage) {
-        uploadPromises.push(uploadToR2(selectedCoverImage, 'covers'))
-      }
-
-      setUploadProgress(30)
-      const uploadResults = await Promise.all(uploadPromises)
+      setUploadStage('Uploading files to R2...')
       
-      const audioUrl = uploadResults[0]
-      const coverImageUrl = uploadResults.length > 1 ? uploadResults[1] : undefined
+      const { audioUrl, coverImageUrl } = await uploadConcurrent(
+        selectedAudioFile,
+        selectedCoverImage,
+        {
+          r2AccessKey: credentials!.r2AccessKey,
+          r2SecretKey: credentials!.r2SecretKey,
+          r2BucketName: credentials!.r2BucketName,
+          r2AccountId: credentials!.r2AccountId,
+        },
+        (progress) => setAudioUploadProgress(progress),
+        (progress) => setCoverUploadProgress(progress)
+      )
       
-      setUploadProgress(60)
       setUploadStatus('syncing')
       setUploadStage('Syncing to GitHub...')
 
-      const trackData: UploadedTrack = {
-        id: Date.now().toString(),
+      const trackData: TrackData = {
+        id: `track-${Date.now()}`,
         title: metadata.title,
         artist: metadata.artist,
-        audioUrl,
-        coverImageUrl,
         releaseDate: metadata.releaseDate,
-        uploadedAt: Date.now()
+        status: 'live',
+        r2: {
+          audioUrl,
+          coverImageUrl,
+        },
+        stats: {
+          shares: 0,
+          fireEmojis: 0,
+          comments: 0,
+          engagementRate: '0%'
+        }
       }
 
-      await updateGitHubRepo(trackData)
+      await updateTracksJSON(trackData, {
+        githubToken: credentials!.githubToken,
+        githubRepo: credentials!.githubRepo,
+        githubOwner: credentials!.githubOwner,
+      })
       
-      setUploadProgress(100)
       setUploadStatus('success')
       setUploadStage('Complete!')
 
-      setUploadedTracks((currentTracks) => [trackData, ...(currentTracks || [])])
+      const uploadedTrack: UploadedTrack = {
+        id: trackData.id,
+        title: trackData.title,
+        artist: trackData.artist,
+        audioUrl: trackData.r2.audioUrl,
+        coverImageUrl: trackData.r2.coverImageUrl,
+        releaseDate: trackData.releaseDate,
+        uploadedAt: Date.now()
+      }
+
+      setUploadedTracks((currentTracks) => [uploadedTrack, ...(currentTracks || [])])
 
       confetti({
         particleCount: 150,
@@ -277,7 +222,8 @@ export function TrackManager() {
       }
       setCoverPreview(null)
       setMetadata({ title: '', artist: 'PIKO', releaseDate: new Date().toISOString().split('T')[0] })
-      setUploadProgress(0)
+      setAudioUploadProgress(0)
+      setCoverUploadProgress(0)
 
       setTimeout(() => {
         setUploadStatus('idle')
@@ -287,7 +233,8 @@ export function TrackManager() {
       setUploadStatus('error')
       setUploadStage('Upload failed')
       toast.error(`Upload failed: ${error instanceof Error ? error.message : 'Unknown error'}`)
-      setUploadProgress(0)
+      setAudioUploadProgress(0)
+      setCoverUploadProgress(0)
     } finally {
       setIsUploading(false)
     }
@@ -309,17 +256,26 @@ export function TrackManager() {
     const randomTrack = demoTracks[Math.floor(Math.random() * demoTracks.length)]
 
     setIsUploading(true)
-    setUploadStatus('uploading')
-    setUploadProgress(0)
+    setUploadStatus('uploading-audio')
+    setAudioUploadProgress(0)
+    setCoverUploadProgress(0)
 
     try {
       setUploadStage('Uploading audio to R2...')
-      await new Promise(resolve => setTimeout(resolve, 800))
-      setUploadProgress(30)
       
+      for (let i = 0; i <= 100; i += 10) {
+        await new Promise(resolve => setTimeout(resolve, 80))
+        setAudioUploadProgress(i)
+      }
+      
+      setUploadStatus('uploading-cover')
       setUploadStage('Uploading cover image to R2...')
-      await new Promise(resolve => setTimeout(resolve, 800))
-      setUploadProgress(60)
+      
+      for (let i = 0; i <= 100; i += 10) {
+        await new Promise(resolve => setTimeout(resolve, 60))
+        setCoverUploadProgress(i)
+      }
+
       setUploadStatus('syncing')
       setUploadStage('Syncing to GitHub...')
 
@@ -335,7 +291,6 @@ export function TrackManager() {
         uploadedAt: Date.now()
       }
 
-      setUploadProgress(100)
       setUploadStatus('success')
       setUploadStage('Complete!')
 
@@ -350,7 +305,8 @@ export function TrackManager() {
 
       toast.success(`Demo track "${randomTrack.title}" uploaded!`)
       
-      setUploadProgress(0)
+      setAudioUploadProgress(0)
+      setCoverUploadProgress(0)
 
       setTimeout(() => {
         setUploadStatus('idle')
@@ -360,7 +316,8 @@ export function TrackManager() {
       setUploadStatus('error')
       setUploadStage('Demo upload failed')
       toast.error('Demo upload failed')
-      setUploadProgress(0)
+      setAudioUploadProgress(0)
+      setCoverUploadProgress(0)
     } finally {
       setIsUploading(false)
     }
@@ -528,10 +485,10 @@ export function TrackManager() {
           </div>
 
           {uploadStatus !== 'idle' && (
-            <div className="space-y-2 p-4 rounded border border-border bg-muted/20">
+            <div className="space-y-3 p-4 rounded border border-border bg-muted/20">
               <div className="flex items-center justify-between mb-2">
                 <div className="flex items-center gap-2">
-                  {uploadStatus === 'uploading' && <Loader2 className="w-4 h-4 animate-spin text-primary" />}
+                  {(uploadStatus === 'uploading-audio' || uploadStatus === 'uploading-cover') && <Loader2 className="w-4 h-4 animate-spin text-primary" />}
                   {uploadStatus === 'syncing' && <Loader2 className="w-4 h-4 animate-spin text-secondary" />}
                   {uploadStatus === 'success' && <CheckCircle className="w-4 h-4 text-secondary" />}
                   {uploadStatus === 'error' && <AlertCircle className="w-4 h-4 text-destructive" />}
@@ -539,9 +496,36 @@ export function TrackManager() {
                     {uploadStage || 'Processing...'}
                   </span>
                 </div>
-                <span className="text-sm font-bold">{uploadProgress}%</span>
               </div>
-              <Progress value={uploadProgress} className="h-2" />
+              
+              {(uploadStatus === 'uploading-audio' || uploadStatus === 'uploading-cover' || uploadStatus === 'syncing') && (
+                <>
+                  <div className="space-y-1">
+                    <div className="flex items-center justify-between text-xs">
+                      <span className="font-bold text-muted-foreground">Audio Upload</span>
+                      <span className="font-bold">{audioUploadProgress}%</span>
+                    </div>
+                    <Progress value={audioUploadProgress} className="h-2 neon-glow-magenta" />
+                  </div>
+
+                  {selectedCoverImage && (
+                    <div className="space-y-1">
+                      <div className="flex items-center justify-between text-xs">
+                        <span className="font-bold text-muted-foreground">Cover Upload</span>
+                        <span className="font-bold">{coverUploadProgress}%</span>
+                      </div>
+                      <Progress value={coverUploadProgress} className="h-2 neon-glow-cyan" />
+                    </div>
+                  )}
+                </>
+              )}
+              
+              {uploadStatus === 'success' && (
+                <div className="flex items-center justify-center gap-2 text-secondary font-bold">
+                  <CheckCircle className="w-5 h-5" />
+                  <span>Upload Complete!</span>
+                </div>
+              )}
             </div>
           )}
 

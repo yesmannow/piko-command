@@ -3,25 +3,17 @@ import { useKV } from '@github/spark/hooks'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
+import { Progress } from '@/components/ui/progress'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { Alert, AlertDescription } from '@/components/ui/alert'
-import { Music, ExternalLink, Calendar, Loader2, RefreshCw, AlertCircle } from 'lucide-react'
+import { Music, ExternalLink, Calendar, Loader2, RefreshCw, AlertCircle, Flame, Share2, MessageCircle, TrendingUp } from 'lucide-react'
 import { toast } from 'sonner'
+import { fetchTracksJSON, type TrackData } from '@/lib/githubAPI'
 
 interface VaultCredentials {
   githubToken: string
   githubRepo: string
   githubOwner: string
-}
-
-interface Track {
-  id: string
-  title: string
-  artist: string
-  audioUrl?: string
-  coverImageUrl?: string
-  releaseDate?: string
-  uploadedAt: number
 }
 
 export function ReleasesView() {
@@ -31,11 +23,12 @@ export function ReleasesView() {
     githubOwner: ''
   })
   
-  const [tracks, setTracks] = useState<Track[]>([])
+  const [tracks, setTracks] = useState<TrackData[]>([])
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [hoveredTrack, setHoveredTrack] = useState<string | null>(null)
 
-  const fetchTracksFromGitHub = async () => {
+  const fetchTracks = async () => {
     if (!credentials?.githubToken || !credentials?.githubRepo || !credentials?.githubOwner) {
       setError('GitHub credentials not configured')
       return
@@ -45,28 +38,11 @@ export function ReleasesView() {
     setError(null)
 
     try {
-      const filePath = 'tracks.json'
-      const repoUrl = `https://api.github.com/repos/${credentials.githubOwner}/${credentials.githubRepo}/contents/${filePath}`
-
-      const response = await fetch(repoUrl, {
-        headers: {
-          'Authorization': `Bearer ${credentials.githubToken}`,
-          'Accept': 'application/vnd.github.v3+json'
-        }
+      const tracksData = await fetchTracksJSON({
+        githubToken: credentials.githubToken,
+        githubRepo: credentials.githubRepo,
+        githubOwner: credentials.githubOwner,
       })
-
-      if (!response.ok) {
-        if (response.status === 404) {
-          setTracks([])
-          setError('tracks.json not found in repository')
-          return
-        }
-        throw new Error(`GitHub API error: ${response.statusText}`)
-      }
-
-      const data = await response.json()
-      const content = atob(data.content)
-      const tracksData = JSON.parse(content) as Track[]
       
       setTracks(tracksData)
       toast.success(`Loaded ${tracksData.length} track(s) from GitHub`)
@@ -81,7 +57,7 @@ export function ReleasesView() {
 
   useEffect(() => {
     if (credentials?.githubToken && credentials?.githubRepo && credentials?.githubOwner) {
-      fetchTracksFromGitHub()
+      fetchTracks()
     }
   }, [])
 
@@ -95,7 +71,7 @@ export function ReleasesView() {
               RELEASES CATALOG
             </CardTitle>
             <Button
-              onClick={fetchTracksFromGitHub}
+              onClick={fetchTracks}
               variant="outline"
               size="sm"
               disabled={isLoading || !credentials?.githubToken}
@@ -144,15 +120,73 @@ export function ReleasesView() {
             <ScrollArea className="h-[600px] pr-4">
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 {tracks.map((track) => (
-                  <Card key={track.id} className="studio-card hover:border-primary/50 transition-all group">
+                  <Card 
+                    key={track.id} 
+                    className="studio-card hover:border-primary/50 transition-all group relative overflow-hidden"
+                    onMouseEnter={() => setHoveredTrack(track.id)}
+                    onMouseLeave={() => setHoveredTrack(null)}
+                  >
                     <CardContent className="p-4 space-y-3">
-                      {track.coverImageUrl ? (
-                        <div className="aspect-square rounded overflow-hidden bg-muted border border-border">
+                      {track.r2.coverImageUrl ? (
+                        <div className="aspect-square rounded overflow-hidden bg-muted border border-border relative">
                           <img 
-                            src={track.coverImageUrl} 
+                            src={track.r2.coverImageUrl} 
                             alt={track.title}
                             className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                           />
+                          
+                          {hoveredTrack === track.id && track.stats && (
+                            <div className="absolute inset-0 bg-black/80 backdrop-blur-sm p-4 flex flex-col justify-center space-y-3 animate-in fade-in duration-200">
+                              <h4 className="text-xs font-black uppercase text-accent mb-2 flex items-center gap-2">
+                                <Flame className="w-4 h-4" />
+                                Hype Meters
+                              </h4>
+                              
+                              <div className="space-y-1">
+                                <div className="flex items-center justify-between text-xs">
+                                  <div className="flex items-center gap-1">
+                                    <Share2 className="w-3 h-3 text-secondary" />
+                                    <span className="font-bold">Shares</span>
+                                  </div>
+                                  <span className="font-black">{track.stats.shares}</span>
+                                </div>
+                                <Progress value={(track.stats.shares / 1000) * 100} className="h-1.5 neon-glow-cyan" />
+                              </div>
+
+                              <div className="space-y-1">
+                                <div className="flex items-center justify-between text-xs">
+                                  <div className="flex items-center gap-1">
+                                    <Flame className="w-3 h-3 text-accent" />
+                                    <span className="font-bold">Fire 🔥</span>
+                                  </div>
+                                  <span className="font-black">{track.stats.fireEmojis}</span>
+                                </div>
+                                <Progress value={(track.stats.fireEmojis / 3000) * 100} className="h-1.5 neon-glow-orange" />
+                              </div>
+
+                              <div className="space-y-1">
+                                <div className="flex items-center justify-between text-xs">
+                                  <div className="flex items-center gap-1">
+                                    <MessageCircle className="w-3 h-3 text-primary" />
+                                    <span className="font-bold">Comments</span>
+                                  </div>
+                                  <span className="font-black">{track.stats.comments}</span>
+                                </div>
+                                <Progress value={(track.stats.comments / 1000) * 100} className="h-1.5 neon-glow-magenta" />
+                              </div>
+
+                              <div className="space-y-1">
+                                <div className="flex items-center justify-between text-xs">
+                                  <div className="flex items-center gap-1">
+                                    <TrendingUp className="w-3 h-3 text-secondary" />
+                                    <span className="font-bold">Engagement</span>
+                                  </div>
+                                  <span className="font-black">{track.stats.engagementRate}</span>
+                                </div>
+                                <Progress value={parseInt(track.stats.engagementRate)} className="h-1.5 neon-glow-cyan" />
+                              </div>
+                            </div>
+                          )}
                         </div>
                       ) : (
                         <div className="aspect-square rounded overflow-hidden bg-muted border border-border flex items-center justify-center">
@@ -173,23 +207,23 @@ export function ReleasesView() {
                       )}
 
                       <div className="flex gap-2">
-                        {track.audioUrl && (
+                        {track.r2.audioUrl && (
                           <Button
                             variant="outline"
                             size="sm"
                             className="flex-1 text-xs"
-                            onClick={() => window.open(track.audioUrl, '_blank')}
+                            onClick={() => window.open(track.r2.audioUrl, '_blank')}
                           >
                             <ExternalLink className="w-3 h-3 mr-1" />
                             Audio
                           </Button>
                         )}
-                        {track.coverImageUrl && (
+                        {track.r2.coverImageUrl && (
                           <Button
                             variant="outline"
                             size="sm"
                             className="flex-1 text-xs"
-                            onClick={() => window.open(track.coverImageUrl, '_blank')}
+                            onClick={() => window.open(track.r2.coverImageUrl, '_blank')}
                           >
                             <ExternalLink className="w-3 h-3 mr-1" />
                             Cover
@@ -197,9 +231,16 @@ export function ReleasesView() {
                         )}
                       </div>
 
-                      <Badge variant="secondary" className="w-full justify-center text-xs">
-                        Synced to Website
-                      </Badge>
+                      <div className="flex items-center justify-between">
+                        <Badge variant="secondary" className="text-xs">
+                          {track.status === 'live' ? '🟢 Live' : track.status === 'scheduled' ? '🟡 Scheduled' : '⚪ Draft'}
+                        </Badge>
+                        {track.stats && (
+                          <span className="text-xs text-muted-foreground">
+                            Hover for stats
+                          </span>
+                        )}
+                      </div>
                     </CardContent>
                   </Card>
                 ))}

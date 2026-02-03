@@ -55,11 +55,11 @@ A comprehensive social media and content management platform designed for indepe
 - **Success criteria**: Comments aggregated, checkboxes functional, blast reply feature sends to all selected comments
 
 ### 7. Studio-to-Web Upload (R2 + GitHub Integration)
-- **Functionality**: Upload audio tracks and cover art to Cloudflare R2, then auto-sync metadata to GitHub repo to trigger website redeploy
+- **Functionality**: Upload audio tracks and cover art to Cloudflare R2 using S3-compatible API, then auto-sync metadata to GitHub repo to trigger website redeploy
 - **Purpose**: Seamlessly update artist website with new tracks without manual code editing
 - **Trigger**: User uploads audio + optional cover image in "STUDIO" tab, fills metadata, clicks "UPLOAD & SYNC"
-- **Progression**: File selection → Metadata input → Concurrent R2 uploads (audio + cover) → GitHub API call updates tracks.json → Vercel redeploy triggered → Success confetti
-- **Success criteria**: Files uploaded to R2 with public URLs, tracks.json updated with both audioUrl and coverImageUrl, track appears in "RELEASES" view
+- **Progression**: File selection → Metadata input → Concurrent R2 uploads with dual progress bars (audio + cover) → GitHub API call updates tracks.json with proper JSON structure → Vercel redeploy triggered → Success confetti
+- **Success criteria**: Files uploaded to R2 with public URLs using AWS S3 SDK, tracks.json updated with standardized structure containing id, title, artist, releaseDate, status, r2 object (audioUrl + coverImageUrl), and stats object, track appears in "RELEASES" view with hover-activated hype meters
 
 ### 8. Secure Vault Settings
 - **Functionality**: Encrypted storage of R2 access keys, bucket name, account ID, GitHub personal access token, and repo details
