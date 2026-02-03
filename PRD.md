@@ -69,18 +69,18 @@ This is a comprehensive artist workflow tool featuring multi-platform content di
 - **Success Criteria**: Animations are fluid (60fps), meters respond to real-time data, visual language matches studio aesthetic (VU meters, spectrum analyzers)
 
 ### Studio-to-Web Upload (R2 Integration)
-- **Functionality**: Upload audio tracks directly to Cloudflare R2 storage with automatic GitHub repository sync to update artist website
-- **Purpose**: Streamline the workflow from studio production to live website—no manual file uploads or repo updates needed
-- **Trigger**: User selects audio file in Studio tab → Enters track metadata → Clicks "Upload & Sync"
-- **Progression**: User uploads track file → App uploads to R2 bucket → Generates public R2 URL → Updates GitHub repo's tracks.json → Triggers Vercel redeploy → Track appears on live website → Success confirmation
-- **Success Criteria**: Upload completes within 30 seconds for 50MB file, GitHub API call succeeds, tracks.json properly formatted, no data loss, progress bar shows accurate status
+- **Functionality**: Upload audio tracks directly to Cloudflare R2 storage with automatic GitHub repository sync to update artist website; includes demo track upload simulation for testing
+- **Purpose**: Streamline the workflow from studio production to live website—no manual file uploads or repo updates needed; verify integration with test data
+- **Trigger**: User selects audio file in Studio tab → Enters track metadata → Clicks "Upload & Sync" OR clicks "Demo: Upload Random Track" to simulate upload flow
+- **Progression**: User uploads track file → App uploads to R2 bucket → Generates public R2 URL → Updates GitHub repo's tracks.json → Triggers Vercel redeploy → Track appears on live website → Success confirmation (OR) Demo mode: generates random track metadata → simulates upload/sync with progress animation → adds demo track to uploaded list → celebration effect
+- **Success Criteria**: Upload completes within 30 seconds for 50MB file, GitHub API call succeeds, tracks.json properly formatted, no data loss, progress bar shows accurate status, demo upload provides realistic simulation of integration flow with confetti celebration
 
 ### Vault Settings (Credential Management)
-- **Functionality**: Secure storage interface for R2 access keys, bucket configuration, and GitHub personal access token
-- **Purpose**: Centralize all API credentials in one secure location with password masking and validation
-- **Trigger**: User clicks "Vault" tab to configure or update credentials
-- **Progression**: User enters R2 Account ID → Bucket name → Access keys → GitHub owner/repo → Personal access token → Saves to encrypted KV storage → Validates required fields → Success confirmation
-- **Success Criteria**: All credentials stored securely in KV, password fields masked by default with toggle, validation prevents missing fields, credentials persist across sessions
+- **Functionality**: Secure storage interface for R2 access keys, bucket configuration, and GitHub personal access token with one-click test credential loading
+- **Purpose**: Centralize all API credentials in one secure location with password masking and validation; provide demo credentials for testing integration flow
+- **Trigger**: User clicks "Vault" tab to configure credentials OR clicks "Load Test Credentials" for demo mode
+- **Progression**: User enters R2 Account ID → Bucket name → Access keys → GitHub owner/repo → Personal access token → Saves to encrypted KV storage → Validates required fields → Success confirmation (OR) User clicks "Load Test Credentials" → All fields auto-populate with demo values → User can test Studio upload flow
+- **Success Criteria**: All credentials stored securely in KV, password fields masked by default with toggle, validation prevents missing fields, credentials persist across sessions, test credentials enable demo upload functionality
 
 ### Live Website Preview (Website Integration)
 - **Functionality**: Embedded iframe showing live artist website (https://piko-artist-website.vercel.app/) to verify uploaded tracks appear correctly
@@ -107,6 +107,8 @@ This is a comprehensive artist workflow tool featuring multi-platform content di
 - **Network Timeout**: Implement timeout handling for long uploads with resume capability indication
 - **Empty Uploaded Tracks**: Show encouraging empty state with upload call-to-action
 - **Iframe Load Failure**: Show fallback message if website preview cannot load
+- **Test Credentials Mode**: Demo credentials populate all fields for testing; show clear indicator when in test mode; demo uploads don't hit real APIs but simulate full flow
+- **Demo Track Upload**: Generates random track from preset list; simulates realistic upload timing; shows all progress states; adds to local storage only
 
 ## Design Direction
 The design should feel like stepping into a high-end recording studio at night—almost pitch black with aggressive neon accents cutting through the darkness. High contrast is key: sharp whites for text, electric neon for actions, deep blacks for backgrounds. Typography should be bold and commanding. Every interaction should feel tactile and immediate, optimized for mobile touch with large targets and instant visual feedback. This is a professional tool that looks like it belongs in a booth, not a boardroom.

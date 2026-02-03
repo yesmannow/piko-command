@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible'
 import { toast } from 'sonner'
-import { Key, Github, Database, Eye, EyeOff, Save, CheckCircle, AlertCircle, ChevronDown, Info } from 'lucide-react'
+import { Key, Github, Database, Eye, EyeOff, Save, CheckCircle, AlertCircle, ChevronDown, Info, Sparkles } from 'lucide-react'
 
 interface VaultCredentials {
   r2AccessKey: string
@@ -82,6 +82,22 @@ export function VaultSettings() {
     setShowSecrets(prev => ({ ...prev, [key]: !prev[key] }))
   }
 
+  const loadTestCredentials = () => {
+    const testCreds: VaultCredentials = {
+      r2AccessKey: 'test_access_key_1234567890abcdef',
+      r2SecretKey: 'test_secret_key_0987654321fedcba',
+      r2BucketName: 'piko-tracks-test',
+      r2AccountId: 'test_account_id_xyz789',
+      githubToken: 'ghp_test_token_abcdef1234567890xyz',
+      githubRepo: 'piko-artist-website',
+      githubOwner: 'piko-test-user'
+    }
+    
+    setCredentials(() => testCreds)
+    setShowSecrets({ r2SecretKey: true, githubToken: true })
+    toast.success('Test credentials loaded! These are demo values for testing the UI.')
+  }
+
   const isR2Configured = () => {
     return !!(
       credentials?.r2AccessKey &&
@@ -120,6 +136,17 @@ export function VaultSettings() {
           )}
         </div>
       </Alert>
+
+      <div className="flex gap-3">
+        <Button
+          onClick={loadTestCredentials}
+          variant="outline"
+          className="flex-1 border-primary/50 hover:bg-primary/10 hover:border-primary transition-all"
+        >
+          <Sparkles className="w-4 h-4 mr-2" />
+          Load Test Credentials
+        </Button>
+      </div>
 
       <Collapsible open={showSetupGuide} onOpenChange={setShowSetupGuide}>
         <Card className="studio-card border-primary/30">

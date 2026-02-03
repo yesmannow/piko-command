@@ -8,7 +8,8 @@ import { Progress } from '@/components/ui/progress'
 import { Badge } from '@/components/ui/badge'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { toast } from 'sonner'
-import { Upload, Music, CheckCircle, ExternalLink, Loader2, Globe, AlertCircle, Settings } from 'lucide-react'
+import { Upload, Music, CheckCircle, ExternalLink, Loader2, Globe, AlertCircle, Settings, Sparkles } from 'lucide-react'
+import confetti from 'canvas-confetti'
 
 interface VaultCredentials {
   r2AccessKey: string
@@ -204,6 +205,13 @@ export function TrackManager() {
 
       setUploadedTracks((currentTracks) => [trackData, ...(currentTracks || [])])
 
+      confetti({
+        particleCount: 150,
+        spread: 100,
+        origin: { y: 0.6 },
+        colors: ['#ff00ff', '#00ffff', '#ff3366', '#ffffff']
+      })
+
       toast.success(`${metadata.title} uploaded and synced!`)
       
       setSelectedFile(null)
@@ -222,6 +230,71 @@ export function TrackManager() {
     }
   }
 
+  const simulateDemoUpload = async () => {
+    if (!validateCredentials()) {
+      toast.error('Load test credentials in the Vault tab first!')
+      return
+    }
+
+    const demoTracks = [
+      { title: 'Midnight Heat', artist: 'PIKO', fileName: 'midnight-heat.mp3' },
+      { title: 'City Lights', artist: 'PIKO', fileName: 'city-lights.mp3' },
+      { title: 'Neon Dreams', artist: 'PIKO', fileName: 'neon-dreams.mp3' },
+      { title: 'Street Symphony', artist: 'PIKO', fileName: 'street-symphony.mp3' }
+    ]
+
+    const randomTrack = demoTracks[Math.floor(Math.random() * demoTracks.length)]
+
+    setIsUploading(true)
+    setUploadStatus('uploading')
+    setUploadProgress(0)
+
+    try {
+      await new Promise(resolve => setTimeout(resolve, 800))
+      setUploadProgress(30)
+      
+      await new Promise(resolve => setTimeout(resolve, 800))
+      setUploadProgress(60)
+      setUploadStatus('syncing')
+
+      await new Promise(resolve => setTimeout(resolve, 800))
+      
+      const trackData: UploadedTrack = {
+        id: Date.now().toString(),
+        title: randomTrack.title,
+        artist: randomTrack.artist,
+        r2Url: `https://demo.r2.dev/tracks/${Date.now()}-${randomTrack.fileName}`,
+        uploadedAt: Date.now()
+      }
+
+      setUploadProgress(100)
+      setUploadStatus('success')
+
+      setUploadedTracks((currentTracks) => [trackData, ...(currentTracks || [])])
+
+      confetti({
+        particleCount: 150,
+        spread: 100,
+        origin: { y: 0.6 },
+        colors: ['#ff00ff', '#00ffff', '#ff3366', '#ffffff']
+      })
+
+      toast.success(`Demo track "${randomTrack.title}" uploaded!`)
+      
+      setUploadProgress(0)
+
+      setTimeout(() => {
+        setUploadStatus('idle')
+      }, 3000)
+    } catch (error) {
+      setUploadStatus('error')
+      toast.error('Demo upload failed')
+      setUploadProgress(0)
+    } finally {
+      setIsUploading(false)
+    }
+  }
+
   return (
     <div className="space-y-6">
       {!validateCredentials() && (
@@ -230,6 +303,15 @@ export function TrackManager() {
           <AlertDescription className="text-accent font-bold flex items-center justify-between">
             <span>Configure R2 and GitHub credentials in the Vault tab first.</span>
             <Settings className="w-4 h-4" />
+          </AlertDescription>
+        </Alert>
+      )}
+
+      {validateCredentials() && (
+        <Alert className="border-primary bg-primary/10">
+          <Sparkles className="w-5 h-5 text-primary" />
+          <AlertDescription className="flex items-center justify-between">
+            <span className="text-primary font-bold">Test Mode Active: Try the demo upload below!</span>
           </AlertDescription>
         </Alert>
       )}
@@ -354,6 +436,19 @@ export function TrackManager() {
             <Upload className="w-5 h-5 mr-2" />
             {isUploading ? 'UPLOADING...' : 'UPLOAD & SYNC'}
           </Button>
+
+          {validateCredentials() && (
+            <Button
+              onClick={simulateDemoUpload}
+              variant="outline"
+              className="w-full border-primary/50 hover:bg-primary/10 hover:border-primary transition-all"
+              size="lg"
+              disabled={isUploading}
+            >
+              <Sparkles className="w-5 h-5 mr-2" />
+              DEMO: Upload Random Track
+            </Button>
+          )}
         </CardContent>
       </Card>
 
