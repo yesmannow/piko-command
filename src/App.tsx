@@ -36,6 +36,7 @@ import { VaultSettings } from '@/components/VaultSettings'
 import { TestUploadHelper } from '@/components/TestUploadHelper'
 import { TimelineCalendar } from '@/components/TimelineCalendar'
 import { PlatformPreview } from '@/components/PlatformPreview'
+import { SocialPreview } from '@/components/SocialPreview'
 import { PromptLibrary } from '@/components/PromptLibrary'
 import { uploadAssetsToGitHub, syncTrackMetadata } from '@/lib/githubAssetUploader'
 import { SocialMediaAdapter, type Platform } from '@/lib/SocialMediaAdapter'
@@ -94,6 +95,7 @@ function App() {
   const [showPromptLibrary, setShowPromptLibrary] = useState(false)
   const [currentView, setCurrentView] = useState<'composer' | 'history' | 'studio' | 'vault'>('composer')
   const [stats, setStats] = useState({ posts: 0, platforms: 0, engagement: 0 })
+  const [smartLink, setSmartLink] = useState<string>(PIKO_WEBSITE)
 
   const [selectedAudioFile, setSelectedAudioFile] = useState<File | null>(null)
   const [selectedCoverImage, setSelectedCoverImage] = useState<File | null>(null)
@@ -226,11 +228,11 @@ Voice: Authentic, Street, Technical, Energetic.`
     setIsPosting(true)
 
     try {
-      const finalCaption = `${caption}\n\n🔗 ${PIKO_WEBSITE}`
+      const finalCaption = `${caption}\n\n🔗 ${smartLink}`
 
       await SocialMediaAdapter.blastToAll(platforms as Platform[], {
         caption: finalCaption,
-        link: PIKO_WEBSITE
+        link: smartLink
       })
 
       const newPost: PostHistory = {
@@ -250,7 +252,7 @@ Voice: Authentic, Street, Technical, Energetic.`
         colors: ['#bef264', '#10b981', '#22c55e', '#84cc16']
       })
 
-      toast.success('DROPPED! 🚀')
+      toast.success('🚀 BLAST SUCCESSFUL! Content distributed across all platforms!')
       setCaption('')
       setPlatforms(['instagram', 'tiktok', 'twitter'])
     } catch (error) {
@@ -383,6 +385,8 @@ Voice: Authentic, Street, Technical, Energetic.`
 
       setUploadedTracks((currentTracks) => [uploadedTrack, ...(currentTracks || [])])
 
+      setSmartLink(audioUrl)
+
       confetti({
         particleCount: 150,
         spread: 100,
@@ -390,7 +394,7 @@ Voice: Authentic, Street, Technical, Energetic.`
         colors: ['#ff00ff', '#00ffff', '#ff3366', '#ffffff']
       })
 
-      toast.success(`${metadata.title} uploaded and synced!`)
+      toast.success(`${metadata.title} uploaded and synced! Smart link ready for distribution.`)
       
       setSelectedAudioFile(null)
       setSelectedCoverImage(null)
@@ -788,6 +792,112 @@ Voice: Authentic, Street, Technical, Energetic.`
 
               <TestUploadHelper />
 
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <Card className="border-2 border-zinc-800 bg-zinc-950/90 backdrop-blur-xl shadow-2xl">
+                  <CardHeader className="border-b border-zinc-800/50">
+                    <CardTitle className="text-xl uppercase tracking-wider font-black flex items-center gap-3">
+                      <Zap className="w-6 h-6 text-lime-400" />
+                      <span className="bg-gradient-to-r from-lime-400 to-emerald-400 bg-clip-text text-transparent">
+                        CAPTION COMPOSER
+                      </span>
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="p-6 space-y-4">
+                    <div className="space-y-3">
+                      <Label className="text-xs uppercase tracking-widest font-black text-zinc-400">
+                        CAPTION / VIDEO URL
+                      </Label>
+                      <Textarea
+                        value={caption}
+                        onChange={(e) => setCaption(e.target.value)}
+                        placeholder="Write your caption or paste YouTube link..."
+                        className="min-h-[180px] resize-none bg-zinc-950 border-0 focus:border-0 focus:ring-2 focus:ring-lime-500/20 text-base font-medium rounded-lg transition-all"
+                        id="caption-input-studio"
+                        style={{ fontFamily: 'monospace' }}
+                      />
+                      <div className="flex items-center justify-end">
+                        <span className={`text-sm font-black tabular-nums ${characterCount > characterLimit ? 'text-red-400' : 'text-zinc-500'}`}>
+                          {characterCount} / {characterLimit}
+                        </span>
+                      </div>
+                    </div>
+
+                    <div className="space-y-3">
+                      <Label className="text-xs uppercase tracking-widest font-black text-zinc-400">
+                        TARGET PLATFORMS
+                      </Label>
+                      <div className="flex flex-wrap gap-2">
+                        {[
+                          { id: 'instagram', label: 'Instagram', icon: ImageIcon },
+                          { id: 'tiktok', label: 'TikTok', icon: Video },
+                          { id: 'twitter', label: 'X', icon: Hash }
+                        ].map(platform => (
+                          <Button
+                            key={platform.id}
+                            variant={platforms.includes(platform.id) ? 'default' : 'outline'}
+                            onClick={() => togglePlatform(platform.id)}
+                            size="sm"
+                            className={
+                              platforms.includes(platform.id)
+                                ? 'bg-lime-400 hover:bg-lime-500 text-zinc-950 font-black uppercase tracking-wider border-2 border-lime-400 shadow-lg shadow-lime-400/20 active:scale-95 transition-all'
+                                : 'border-2 border-zinc-700 hover:border-lime-500/50 hover:bg-lime-500/10 font-bold uppercase tracking-wide active:scale-95 transition-all'
+                            }
+                          >
+                            <platform.icon className="w-4 h-4 mr-2" />
+                            {platform.label}
+                          </Button>
+                        ))}
+                      </div>
+                    </div>
+
+                    <div className="h-px bg-gradient-to-r from-transparent via-zinc-800 to-transparent" />
+
+                    <div className="space-y-2">
+                      <Label className="text-xs uppercase tracking-widest font-black text-zinc-400">
+                        SMART LINK
+                      </Label>
+                      <div className="flex items-center gap-2">
+                        <Input
+                          value={smartLink}
+                          onChange={(e) => setSmartLink(e.target.value)}
+                          placeholder="https://piko-artist-website.vercel.app"
+                          className="bg-zinc-950 border-zinc-700 focus:border-lime-500 font-mono text-sm"
+                        />
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => setSmartLink(PIKO_WEBSITE)}
+                          className="border-zinc-700 hover:border-lime-500/50 hover:bg-lime-500/10"
+                        >
+                          Reset
+                        </Button>
+                      </div>
+                      <p className="text-xs text-zinc-600">Auto-appended to all posts</p>
+                    </div>
+
+                    <Button
+                      onClick={handlePostSubmit}
+                      disabled={!caption.trim() || platforms.length === 0 || isPosting}
+                      className="w-full bg-lime-400 hover:bg-lime-500 text-zinc-950 font-black uppercase tracking-widest text-lg border-2 border-lime-400 shadow-2xl shadow-lime-400/40 active:scale-95 transition-all h-12"
+                    >
+                      {isPosting ? (
+                        <>
+                          <Loader2 className="w-6 h-6 mr-2 animate-spin" />
+                          BLASTING...
+                        </>
+                      ) : (
+                        <>
+                          <Send className="w-6 h-6 mr-2" />
+                          BLAST TO ALL
+                        </>
+                      )}
+                    </Button>
+                  </CardContent>
+                </Card>
+
+                <SocialPreview caption={caption} smartLink={smartLink} />
+              </div>
+
               <Card className="border-2 border-zinc-800 bg-zinc-950/90 backdrop-blur-xl shadow-2xl">
                 <CardHeader className="border-b border-zinc-800/50">
                   <CardTitle className="text-2xl uppercase tracking-wider font-black flex items-center gap-3">
@@ -982,7 +1092,7 @@ Voice: Authentic, Street, Technical, Energetic.`
                       {uploadStatus === 'success' && (
                         <div className="flex items-center justify-center gap-2 text-emerald-400 font-bold">
                           <CheckCircle className="w-5 h-5" />
-                          <span>Upload Complete!</span>
+                          <span>Upload Complete! Smart link ready.</span>
                         </div>
                       )}
                     </div>
@@ -1043,10 +1153,23 @@ Voice: Authentic, Street, Technical, Energetic.`
                               <h3 className="font-black text-lg mb-1">{track.title}</h3>
                               <p className="text-sm text-zinc-500">{track.artist}</p>
                             </div>
-                            <Badge className="bg-emerald-500/20 text-emerald-400 border border-emerald-500/50">
-                              <CheckCircle className="w-3 h-3 mr-1" />
-                              Synced
-                            </Badge>
+                            <div className="flex items-center gap-2">
+                              <Badge className="bg-emerald-500/20 text-emerald-400 border border-emerald-500/50">
+                                <CheckCircle className="w-3 h-3 mr-1" />
+                                Synced
+                              </Badge>
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                onClick={() => {
+                                  setSmartLink(track.audioUrl)
+                                  toast.success('Smart link updated!')
+                                }}
+                                className="border-lime-500/50 hover:bg-lime-500/10 hover:border-lime-500"
+                              >
+                                Use Link
+                              </Button>
+                            </div>
                           </div>
                           <div className="flex items-center gap-2 text-xs text-zinc-500">
                             <span>{new Date(track.uploadedAt).toLocaleDateString()}</span>
