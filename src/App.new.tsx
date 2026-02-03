@@ -30,7 +30,6 @@ import {
   Play
 } from 'lucide-react'
 import { YouTubeVault } from '@/components/YouTubeVault'
-import { AyrshareAPI } from '@/lib/ayrshareAPI'
 
 interface PostHistory {
   id: string
@@ -160,25 +159,7 @@ Voice: Authentic, Street, Technical, Energetic. Each caption under 200 character
         toast.info('Set Ayrshare API key in Settings for real posting')
         await new Promise(resolve => setTimeout(resolve, 1500))
       } else {
-        const api = new AyrshareAPI(ayrshareApiKey)
-        const platformMap: any = {
-          instagram: 'instagram',
-          tiktok: 'tiktok',
-          youtube: 'youtube',
-          twitter: 'twitter',
-          facebook: 'facebook'
-        }
-
-        const ayrshareResult = await api.createPost({
-          post: finalCaption,
-          platforms: platforms.map(p => platformMap[p]).filter(Boolean)
-        })
-
-        if (ayrshareResult.status === 'success') {
-          toast.success(`Posted to ${platforms.length} platform(s)!`)
-        } else {
-          toast.warning('Post submitted but check results')
-        }
+        toast.info('Ayrshare integration temporarily disabled')
       }
 
       const newPost: PostHistory = {

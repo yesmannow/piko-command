@@ -8,7 +8,7 @@ import {
   Hash
 } from 'lucide-react'
 import { 
-  Instagram, 
+  InstagramLogo, 
   TiktokLogo, 
   XLogo, 
   FacebookLogo, 
@@ -28,7 +28,7 @@ interface TimelineCalendarProps {
 }
 
 const platformIcons: Record<string, { icon: React.ComponentType<any>; color: string }> = {
-  instagram: { icon: Instagram, color: 'text-pink-400' },
+  instagram: { icon: InstagramLogo, color: 'text-pink-400' },
   tiktok: { icon: TiktokLogo, color: 'text-cyan-400' },
   twitter: { icon: XLogo, color: 'text-blue-400' },
   facebook: { icon: FacebookLogo, color: 'text-blue-500' },

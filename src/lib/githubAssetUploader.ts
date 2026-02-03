@@ -2,25 +2,21 @@ import { Octokit } from 'octokit'
 
 interface GitHubCredentials {
   githubToken: string
+  githubRepo: string
+  githubOwner: string
 }
-interface UploadResul
- 
 
+interface UploadResult {
+  audioUrl: string
+  coverImageUrl?: string
+}
+
+interface TrackMetadata {
   title: string
-  vibe?: string
-}
-c
-
-async function fileToBase
-    const reade
-      if (typeof
+  artist: string
   vibe?: string
   releaseDate?: string
 }
-
-const REPO_OWNER = 'yesmannow'
-const REPO_NAME = 'piko-artist-website-v3'
-const TRACKS_JSON_PATH = 'src/data/piko-tracks.json'
 
 async function fileToBase64(file: File): Promise<string> {
   return new Promise((resolve, reject) => {
@@ -30,38 +26,34 @@ async function fileToBase64(file: File): Promise<string> {
         const base64 = reader.result.split(',')[1]
         resolve(base64)
       } else {
+        reject(new Error('Failed to read file as base64'))
+      }
+    }
+    reader.onerror = () => reject(reader.error)
+    reader.readAsDataURL(file)
+  })
 }
-export 
-  cov
+
+export async function uploadAssetsToGitHub(
+  audioFile: File,
+  coverImageFile: File | null,
+  metadata: TrackMetadata,
   credentials: GitHubCredentials,
-  coverProgressCallback?: (pro
-  tr
- 
-
-    const audioExtension = audioFile.name.split('.').
-    const audioPa
-    if (audioProgr
-    }
-    const audioBase64 = 
-    if (audioProgressCallb
- 
-
-      repo: REPO_NAME,
-      message: `Up
+  audioProgressCallback?: (progress: number) => void,
+  coverProgressCallback?: (progress: number) => void
+): Promise<UploadResult> {
+  try {
+    const octokit = new Octokit({
+      auth: credentials.githubToken,
     })
-    if (audioProgressCallb
-    }
-    const audioUrl = `/audio/tracks/${audioFilename}`
-    let coverImageUrl: string | undefined
-    if (coverImageFile) {
-       
 
-      const coverFilename = `${track
+    const trackSlug = metadata.title
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/(^-|-$)/g, '')
 
-
-        coverProgressCallback(50)
-
-        owner: REPO_OWNER,
+    const audioExtension = audioFile.name.split('.').pop() || 'mp3'
+    const audioFilename = `${trackSlug}.${audioExtension}`
     const audioPath = `public/audio/tracks/${audioFilename}`
 
     if (audioProgressCallback) {
@@ -75,8 +67,8 @@ export
     }
 
     await octokit.rest.repos.createOrUpdateFileContents({
-      owner: REPO_OWNER,
-      repo: REPO_NAME,
+      owner: credentials.githubOwner,
+      repo: credentials.githubRepo,
       path: audioPath,
       message: `Upload audio track: ${metadata.title}`,
       content: audioBase64,
@@ -106,8 +98,8 @@ export
       }
 
       await octokit.rest.repos.createOrUpdateFileContents({
-        owner: REPO_OWNER,
-        repo: REPO_NAME,
+        owner: credentials.githubOwner,
+        repo: credentials.githubRepo,
         path: coverPath,
         message: `Upload cover art: ${metadata.title}`,
         content: coverBase64,
@@ -126,94 +118,92 @@ export
     }
   } catch (error) {
     console.error('GitHub asset upload error:', error)
-      audioUrl: audioUrl,
-      releaseDate: metadata.releaseDate || new Date().toISOStri
+    if (error instanceof Error) {
+      throw new Error(`Upload failed: ${error.message}`)
     }
-    existingTracks.unshift(newTrack)
-   
-
-
-      path: TRACKS_JSON_PATH,
-      content: encodedCont
-    })
-    console.error('GitHub metadata s
-      throw new Error(`Metadata 
-    throw new Erro
+    throw new Error('Upload failed: Unknown error')
+  }
 }
-export async function checkGitHub
+
+export async function syncTrackMetadata(
+  metadata: TrackMetadata,
+  audioUrl: string,
+  coverImageUrl: string | undefined,
+  credentials: GitHubCredentials
+): Promise<void> {
+  try {
     const octokit = new Octokit({
+      auth: credentials.githubToken,
     })
 
-      repo: REPO_NAME,
+    const TRACKS_JSON_PATH = 'src/data/piko-tracks.json'
 
+    let existingTracks: any[] = []
+    let sha: string | undefined
 
-    retur
+    try {
+      const { data: fileData } = await octokit.rest.repos.getContent({
+        owner: credentials.githubOwner,
+        repo: credentials.githubRepo,
+        path: TRACKS_JSON_PATH,
+      })
+
+      if ('content' in fileData) {
+        sha = fileData.sha
+        const content = Buffer.from(fileData.content, 'base64').toString('utf-8')
+        existingTracks = JSON.parse(content)
+      }
+    } catch (error: any) {
+      if (error.status !== 404) {
+        throw error
+      }
+    }
+
+    const newTrack = {
+      id: `track-${Date.now()}`,
+      title: metadata.title,
+      artist: metadata.artist,
+      vibe: metadata.vibe || 'Hip-Hop',
+      audioUrl: audioUrl,
+      coverImageUrl: coverImageUrl,
+      releaseDate: metadata.releaseDate || new Date().toISOString().split('T')[0],
+    }
+
+    existingTracks.unshift(newTrack)
+
+    const encodedContent = Buffer.from(JSON.stringify(existingTracks, null, 2)).toString('base64')
+
+    await octokit.rest.repos.createOrUpdateFileContents({
+      owner: credentials.githubOwner,
+      repo: credentials.githubRepo,
+      path: TRACKS_JSON_PATH,
+      message: `Add track metadata: ${metadata.title}`,
+      content: encodedContent,
+      sha: sha,
+    })
+  } catch (error) {
+    console.error('GitHub metadata sync error:', error)
+    if (error instanceof Error) {
+      throw new Error(`Metadata sync failed: ${error.message}`)
+    }
+    throw new Error('Metadata sync failed: Unknown error')
+  }
 }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+export async function checkGitHubConnection(credentials: GitHubCredentials): Promise<boolean> {
+  try {
+    const octokit = new Octokit({
+      auth: credentials.githubToken,
+    })
+
+    await octokit.rest.repos.get({
+      owner: credentials.githubOwner,
+      repo: credentials.githubRepo,
+    })
+
+    return true
+  } catch (error) {
+    console.error('GitHub connection check failed:', error)
+    return false
+  }
+}

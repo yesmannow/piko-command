@@ -2,7 +2,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { 
-  Instagram, 
+  InstagramLogo, 
   TiktokLogo, 
   XLogo, 
   FacebookLogo, 
@@ -49,7 +49,7 @@ export function PlatformPreview({ caption, selectedPlatforms }: PlatformPreviewP
       <Card className="border-2 border-zinc-800 bg-zinc-950/90 backdrop-blur-xl">
         <CardContent className="p-12 text-center">
           <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-zinc-900 flex items-center justify-center">
-            <Instagram className="w-8 h-8 text-zinc-700" />
+            <InstagramLogo className="w-8 h-8 text-zinc-700" />
           </div>
           <p className="text-zinc-500 font-bold uppercase tracking-wide">
             Write a caption to see platform previews
@@ -80,7 +80,7 @@ export function PlatformPreview({ caption, selectedPlatforms }: PlatformPreviewP
                 value="instagram" 
                 className="font-bold uppercase text-xs data-[state=active]:bg-pink-500/20 data-[state=active]:text-pink-400"
               >
-                <Instagram className="w-4 h-4 mr-1" weight="bold" />
+                <InstagramLogo className="w-4 h-4 mr-1" weight="bold" />
                 IG
               </TabsTrigger>
             )}
@@ -142,7 +142,7 @@ export function PlatformPreview({ caption, selectedPlatforms }: PlatformPreviewP
 
                 <div className="aspect-square bg-zinc-900 flex items-center justify-center">
                   <div className="text-center text-zinc-700">
-                    <Instagram className="w-16 h-16 mx-auto mb-2" weight="thin" />
+                    <InstagramLogo className="w-16 h-16 mx-auto mb-2" weight="thin" />
                     <p className="text-sm">Cover Art / Video Preview</p>
                   </div>
                 </div>
