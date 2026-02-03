@@ -100,6 +100,7 @@ export function SocialMediaAuth() {
     facebookSecret: false
   })
   const [showSetupGuide, setShowSetupGuide] = useState(false)
+  const [isConnecting, setIsConnecting] = useState<string | null>(null)
 
   // OAuth callback handler for future use when OAuth flow is implemented
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
