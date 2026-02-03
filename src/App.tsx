@@ -35,7 +35,11 @@ import {
 import { YouTubeVault } from '@/components/YouTubeVault'
 import { VaultSettings } from '@/components/VaultSettings'
 import { TestUploadHelper } from '@/components/TestUploadHelper'
+import { TimelineCalendar } from '@/components/TimelineCalendar'
+import { PlatformPreview } from '@/components/PlatformPreview'
+import { PromptLibrary } from '@/components/PromptLibrary'
 import { uploadAssetsToGitHub, syncTrackMetadata } from '@/lib/githubAssetUploader'
+import { SocialMediaAdapter, type Platform } from '@/lib/SocialMediaAdapter'
 
 interface PostHistory {
   id: string
@@ -87,6 +91,8 @@ function App() {
   const [isGenerating, setIsGenerating] = useState(false)
   const [generatedCaptions, setGeneratedCaptions] = useState<CaptionVariant | null>(null)
   const [showCaptionDialog, setShowCaptionDialog] = useState(false)
+  const [showPlatformPreview, setShowPlatformPreview] = useState(false)
+  const [showPromptLibrary, setShowPromptLibrary] = useState(false)
   const [currentView, setCurrentView] = useState<'composer' | 'history' | 'studio' | 'vault'>('composer')
   const [stats, setStats] = useState({ posts: 0, platforms: 0, engagement: 0 })
 
@@ -177,6 +183,28 @@ Voice: Authentic, Street, Technical, Energetic.`
     }
   }
 
+  const handleUsePrompt = async (promptText: string) => {
+    if (!caption.trim()) {
+      toast.error('Enter a video link or draft caption first!')
+      return
+    }
+
+    setIsGenerating(true)
+    setShowPromptLibrary(false)
+
+    try {
+      const fullPrompt = `${promptText}\n\nINPUT: ${caption}`
+      const response = await window.spark.llm(fullPrompt, 'gpt-4o-mini', false)
+      setCaption(response)
+      toast.success('Caption generated from template!')
+    } catch (error) {
+      toast.error('AI generation failed. Try again!')
+      console.error(error)
+    } finally {
+      setIsGenerating(false)
+    }
+  }
+
   const selectCaption = (variant: keyof CaptionVariant) => {
     if (generatedCaptions) {
       setCaption(generatedCaptions[variant])
@@ -201,42 +229,10 @@ Voice: Authentic, Street, Technical, Energetic.`
     try {
       const finalCaption = `${caption}\n\n🔗 ${PIKO_WEBSITE}`
 
-      const twitterPlatforms = platforms.filter(p => ['twitter', 'facebook', 'linkedin'].includes(p))
-      const clipboardPlatforms = platforms.filter(p => ['instagram', 'tiktok'].includes(p))
-
-      if (clipboardPlatforms.length > 0) {
-        try {
-          await navigator.clipboard.writeText(finalCaption)
-          toast.success('Caption copied for IG/TikTok! Launching platforms...')
-        } catch (err) {
-          toast.error('Clipboard access denied. Copy manually.')
-        }
-
-        await new Promise(resolve => setTimeout(resolve, 500))
-
-        clipboardPlatforms.forEach(platform => {
-          if (platform === 'instagram') {
-            window.open('https://www.instagram.com/', '_blank')
-          } else if (platform === 'tiktok') {
-            window.open('https://www.tiktok.com/upload', '_blank')
-          }
-        })
-      }
-
-      if (twitterPlatforms.length > 0) {
-        twitterPlatforms.forEach(platform => {
-          if (platform === 'twitter') {
-            const twitterIntentUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(finalCaption)}`
-            window.open(twitterIntentUrl, '_blank')
-          } else if (platform === 'facebook') {
-            const facebookIntentUrl = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(PIKO_WEBSITE)}&quote=${encodeURIComponent(finalCaption)}`
-            window.open(facebookIntentUrl, '_blank')
-          } else if (platform === 'linkedin') {
-            const linkedinIntentUrl = `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(PIKO_WEBSITE)}`
-            window.open(linkedinIntentUrl, '_blank')
-          }
-        })
-      }
+      await SocialMediaAdapter.blastToAll(platforms as Platform[], {
+        caption: finalCaption,
+        link: PIKO_WEBSITE
+      })
 
       const newPost: PostHistory = {
         id: Date.now().toString(),
@@ -603,7 +599,7 @@ Voice: Authentic, Street, Technical, Energetic.`
 
                   <div className="h-px bg-gradient-to-r from-transparent via-zinc-800 to-transparent" />
 
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
                     <Button
                       onClick={generateCaptions}
                       disabled={isGenerating || !caption.trim()}
@@ -624,9 +620,18 @@ Voice: Authentic, Street, Technical, Energetic.`
                     </Button>
 
                     <Button
+                      onClick={() => setShowPromptLibrary(!showPromptLibrary)}
+                      variant="outline"
+                      className="border-2 border-purple-600/70 hover:bg-purple-500/10 hover:border-purple-500 transition-all font-black uppercase tracking-wide active:scale-95"
+                    >
+                      <Sparkles className="w-5 h-5 mr-2" />
+                      TEMPLATES
+                    </Button>
+
+                    <Button
                       onClick={handlePostSubmit}
                       disabled={!caption.trim() || platforms.length === 0 || isPosting}
-                      className="bg-lime-400 hover:bg-lime-500 text-zinc-950 font-black uppercase tracking-widest text-lg border-2 border-lime-400 shadow-2xl shadow-lime-400/40 active:scale-95 transition-all h-12"
+                      className="bg-lime-400 hover:bg-lime-500 text-zinc-950 font-black uppercase tracking-widest text-lg border-2 border-lime-400 shadow-2xl shadow-lime-400/40 active:scale-95 transition-all h-12 md:col-span-1"
                     >
                       {isPosting ? (
                         <>
@@ -641,6 +646,15 @@ Voice: Authentic, Street, Technical, Energetic.`
                       )}
                     </Button>
                   </div>
+
+                  <Button
+                    onClick={() => setShowPlatformPreview(!showPlatformPreview)}
+                    variant="outline"
+                    className="w-full border-2 border-cyan-600/70 hover:bg-cyan-500/10 hover:border-cyan-500 transition-all font-black uppercase tracking-wide active:scale-95"
+                  >
+                    <ExternalLink className="w-5 h-5 mr-2" />
+                    {showPlatformPreview ? 'HIDE' : 'SHOW'} PLATFORM PREVIEW
+                  </Button>
 
                   <div className="p-4 rounded-lg border-2 border-zinc-800 bg-zinc-900/30 space-y-2">
                     <p className="text-xs font-black uppercase tracking-wider text-zinc-400 flex items-center gap-2">
@@ -698,6 +712,18 @@ Voice: Authentic, Street, Technical, Energetic.`
                     </Tabs>
                   </CardContent>
                 </Card>
+              )}
+
+              {showPromptLibrary && (
+                <div className="bento-item-ai">
+                  <PromptLibrary onUsePrompt={handleUsePrompt} />
+                </div>
+              )}
+
+              {showPlatformPreview && caption.trim() && (
+                <div className="bento-item-ai">
+                  <PlatformPreview caption={caption} selectedPlatforms={platforms} />
+                </div>
               )}
 
               <div className="bento-item-vault">
@@ -1082,38 +1108,15 @@ Voice: Authentic, Street, Technical, Energetic.`
                   <CardTitle className="text-2xl uppercase tracking-wider font-black flex items-center gap-3">
                     <TrendingUp className="w-7 h-7 text-lime-400" />
                     <span className="bg-gradient-to-r from-lime-400 to-emerald-400 bg-clip-text text-transparent">
-                      POST HISTORY
+                      TIMELINE CALENDAR
                     </span>
                   </CardTitle>
+                  <p className="text-xs text-zinc-500 mt-2">
+                    Visual distribution history across all platforms
+                  </p>
                 </CardHeader>
                 <CardContent className="p-6">
-                  {!postHistory || postHistory.length === 0 ? (
-                    <div className="text-center py-16">
-                      <TrendingUp className="w-16 h-16 mx-auto mb-4 text-zinc-800" />
-                      <p className="text-zinc-500 font-bold uppercase tracking-wide">No posts yet</p>
-                    </div>
-                  ) : (
-                    <div className="space-y-4">
-                      {postHistory.map(post => (
-                        <div
-                          key={post.id}
-                          className="p-4 rounded-lg border-2 border-zinc-800 bg-zinc-900/30 hover:border-lime-500/50 transition-all space-y-3"
-                        >
-                          <p className="text-sm leading-relaxed line-clamp-4">{post.caption}</p>
-                          <div className="flex items-center gap-2 flex-wrap">
-                            {post.platforms.map(platform => (
-                              <Badge key={platform} className="bg-lime-500/10 text-lime-400 border border-lime-500/30 font-bold uppercase text-xs">
-                                {platform}
-                              </Badge>
-                            ))}
-                          </div>
-                          <p className="text-xs text-zinc-500 font-medium">
-                            {new Date(post.timestamp).toLocaleString()}
-                          </p>
-                        </div>
-                      ))}
-                    </div>
-                  )}
+                  <TimelineCalendar posts={postHistory || []} />
                 </CardContent>
               </Card>
             </motion.div>
