@@ -38,6 +38,7 @@ import { TimelineCalendar } from '@/components/TimelineCalendar'
 import { PlatformPreview } from '@/components/PlatformPreview'
 import { SocialPreview } from '@/components/SocialPreview'
 import { PromptLibrary } from '@/components/PromptLibrary'
+import { HypeCalendar } from '@/components/HypeCalendar'
 import { uploadAssetsToGitHub, syncTrackMetadata } from '@/lib/githubAssetUploader'
 import { SocialMediaAdapter, type Platform } from '@/lib/SocialMediaAdapter'
 
@@ -133,6 +134,15 @@ function App() {
   const handleQuickShare = (videoUrl: string, videoTitle: string) => {
     const starterCaption = `🔥 ${videoTitle}\n\n${videoUrl}`
     setCaption(starterCaption)
+    setCurrentView('composer')
+  }
+
+  const handleReUp = (reUpCaption: string, reUpPlatforms: string[], reUpLink?: string) => {
+    setCaption(reUpCaption)
+    setPlatforms(reUpPlatforms)
+    if (reUpLink) {
+      setSmartLink(reUpLink)
+    }
     setCurrentView('composer')
   }
 
@@ -1225,22 +1235,7 @@ Voice: Authentic, Street, Technical, Energetic.`
               exit={{ opacity: 0, y: -20 }}
               transition={{ duration: 0.2 }}
             >
-              <Card className="border-2 border-zinc-800 bg-zinc-950/90 backdrop-blur-xl shadow-2xl">
-                <CardHeader className="border-b border-zinc-800/50">
-                  <CardTitle className="text-2xl uppercase tracking-wider font-black flex items-center gap-3">
-                    <TrendingUp className="w-7 h-7 text-lime-400" />
-                    <span className="bg-gradient-to-r from-lime-400 to-emerald-400 bg-clip-text text-transparent">
-                      TIMELINE CALENDAR
-                    </span>
-                  </CardTitle>
-                  <p className="text-xs text-zinc-500 mt-2">
-                    Visual distribution history across all platforms
-                  </p>
-                </CardHeader>
-                <CardContent className="p-6">
-                  <TimelineCalendar posts={postHistory || []} />
-                </CardContent>
-              </Card>
+              <HypeCalendar onReUp={handleReUp} />
             </motion.div>
           )}
         </AnimatePresence>
