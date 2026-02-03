@@ -12,6 +12,7 @@ import { ScrollArea } from '@/components/ui/scroll-area'
 import { Separator } from '@/components/ui/separator'
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Label } from '@/components/ui/label'
+import { Alert, AlertDescription } from '@/components/ui/alert'
 import { toast } from 'sonner'
 import { 
   Upload, 
@@ -34,13 +35,17 @@ import {
   Eye,
   Send,
   Settings,
-  Database
+  Database,
+  CheckCircle
 } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 import confetti from 'canvas-confetti'
 import { VaultSettings } from '@/components/VaultSettings'
 import { TrackManager } from '@/components/TrackManager'
 import { ReleasesView } from '@/components/ReleasesView'
+import { SocialMediaAuth } from '@/components/SocialMediaAuth'
+import type { SocialMediaTokens } from '@/components/SocialMediaAuth'
+import { postToMultiplePlatforms } from '@/lib/socialMediaAPI'
 
 interface MediaFile {
   id: string
@@ -98,11 +103,12 @@ function App() {
   const [platforms, setPlatforms] = useState<string[]>(['instagram', 'tiktok'])
   const [posts, setPosts] = useKV<Post[]>('lab-posts', [])
   const [releases, setReleases] = useKV<Release[]>('lab-releases', [])
+  const [socialTokens] = useKV<SocialMediaTokens>('social-tokens', {})
   const [mediaFile, setMediaFile] = useState<MediaFile | null>(null)
   const [isDropping, setIsDropping] = useState(false)
   const [isDragging, setIsDragging] = useState(false)
   const [playingVideo, setPlayingVideo] = useState(false)
-  const [currentView, setCurrentView] = useState<'drop' | 'preview' | 'comments' | 'calendar' | 'vault' | 'studio' | 'releases'>('drop')
+  const [currentView, setCurrentView] = useState<'drop' | 'preview' | 'comments' | 'calendar' | 'vault' | 'studio' | 'releases' | 'social'>('drop')
   const [showLyricDialog, setShowLyricDialog] = useState(false)
   const [lyrics, setLyrics] = useState('')
   const [isAnalyzing, setIsAnalyzing] = useState(false)
@@ -318,17 +324,54 @@ Return a JSON object with three properties: "quotable", "hype", and "story". Eac
     setIsDropping(true)
 
     try {
-      await new Promise(resolve => setTimeout(resolve, 2000))
-
       let smartLink: string | undefined
       if (isTrackRelease && mediaFile) {
         const trackTitle = content.split('\n')[0] || 'New Track'
         smartLink = generateSmartLink(trackTitle)
       }
 
+      const finalCaption = smartLink ? `${content}\n\n🔗 ${smartLink}` : content
+
+      const connectedPlatforms = platforms.filter(platform => {
+        if (platform === 'instagram' && socialTokens?.instagram) return true
+        if (platform === 'tiktok' && socialTokens?.tiktok) return true
+        if (platform === 'youtube' && socialTokens?.youtube) return true
+        if (platform === 'twitter' && socialTokens?.twitter) return true
+        return false
+      })
+
+      if (connectedPlatforms.length > 0 && mediaFile) {
+        toast.loading('Posting to connected platforms...')
+        
+        const postResults = await postToMultiplePlatforms(
+          connectedPlatforms,
+          {
+            caption: finalCaption,
+            mediaUrl: mediaFile.preview,
+            mediaType: mediaFile.type === 'video' ? 'video' : 'image',
+            mediaFile: mediaFile.file
+          },
+          socialTokens || {}
+        )
+
+        const successCount = postResults.filter(r => r.success).length
+        const failCount = postResults.filter(r => !r.success).length
+
+        if (successCount > 0) {
+          toast.success(`Posted to ${successCount} platform(s)!`)
+        }
+        if (failCount > 0) {
+          const failedPlatforms = postResults.filter(r => !r.success).map(r => r.platform).join(', ')
+          toast.error(`Failed: ${failedPlatforms}`)
+        }
+      } else {
+        await new Promise(resolve => setTimeout(resolve, 1500))
+        toast.info('Simulated post (connect platforms in Social tab for real posting)')
+      }
+
       const newPost: Post = {
         id: Date.now().toString(),
-        content: smartLink ? `${content}\n\n🔗 ${smartLink}` : content,
+        content: finalCaption,
         platforms,
         timestamp: Date.now(),
         media: mediaFile || undefined,
@@ -476,6 +519,14 @@ Return a JSON object with three properties: "quotable", "hype", and "story". Eac
             <Settings className="w-4 h-4 mr-2" />
             VAULT
           </Button>
+          <Button
+            variant={currentView === 'social' ? 'default' : 'outline'}
+            onClick={() => setCurrentView('social')}
+            className={currentView === 'social' ? 'bg-accent text-accent-foreground' : ''}
+          >
+            <Users className="w-4 h-4 mr-2" />
+            SOCIAL
+          </Button>
         </div>
 
         <AnimatePresence mode="wait">
@@ -487,6 +538,27 @@ Return a JSON object with three properties: "quotable", "hype", and "story". Eac
               exit={{ opacity: 0, y: -20 }}
               className="grid grid-cols-1 lg:grid-cols-3 gap-6"
             >
+              {!socialTokens?.instagram && !socialTokens?.tiktok && !socialTokens?.youtube && (
+                <div className="lg:col-span-3">
+                  <Alert className="border-accent bg-accent/10">
+                    <Users className="w-5 h-5 text-accent" />
+                    <AlertDescription className="flex items-center justify-between">
+                      <span className="text-accent font-bold">
+                        Connect social accounts in the SOCIAL tab for real multi-platform posting
+                      </span>
+                      <Button
+                        onClick={() => setCurrentView('social')}
+                        variant="outline"
+                        size="sm"
+                        className="border-accent/50 hover:bg-accent/10"
+                      >
+                        Connect Now
+                      </Button>
+                    </AlertDescription>
+                  </Alert>
+                </div>
+              )}
+
               <Card className="studio-card lg:col-span-2">
                 <CardHeader>
                   <CardTitle className="text-2xl uppercase tracking-tight flex items-center gap-2">
@@ -612,41 +684,61 @@ Return a JSON object with three properties: "quotable", "hype", and "story". Eac
                   />
 
                   <div className="flex flex-wrap gap-4 items-center justify-between">
-                    <div className="flex gap-4">
-                      <label className="flex items-center gap-2 cursor-pointer">
+                    <div className="flex gap-4 flex-wrap">
+                      <label className="flex items-center gap-2 cursor-pointer group">
                         <Checkbox
                           checked={platforms.includes('instagram')}
                           onCheckedChange={() => togglePlatform('instagram')}
                           className="data-[state=checked]:bg-primary data-[state=checked]:border-primary"
                         />
-                        <span className="text-sm font-bold uppercase">IG Reels</span>
+                        <span className="text-sm font-bold uppercase flex items-center gap-1">
+                          IG Reels
+                          {socialTokens?.instagram && (
+                            <CheckCircle className="w-3 h-3 text-secondary" />
+                          )}
+                        </span>
                       </label>
 
-                      <label className="flex items-center gap-2 cursor-pointer">
+                      <label className="flex items-center gap-2 cursor-pointer group">
                         <Checkbox
                           checked={platforms.includes('tiktok')}
                           onCheckedChange={() => togglePlatform('tiktok')}
                           className="data-[state=checked]:bg-primary data-[state=checked]:border-primary"
                         />
-                        <span className="text-sm font-bold uppercase">TikTok</span>
+                        <span className="text-sm font-bold uppercase flex items-center gap-1">
+                          TikTok
+                          {socialTokens?.tiktok && (
+                            <CheckCircle className="w-3 h-3 text-secondary" />
+                          )}
+                        </span>
                       </label>
 
-                      <label className="flex items-center gap-2 cursor-pointer">
+                      <label className="flex items-center gap-2 cursor-pointer group">
                         <Checkbox
                           checked={platforms.includes('youtube')}
                           onCheckedChange={() => togglePlatform('youtube')}
                           className="data-[state=checked]:bg-primary data-[state=checked]:border-primary"
                         />
-                        <span className="text-sm font-bold uppercase">YT Shorts</span>
+                        <span className="text-sm font-bold uppercase flex items-center gap-1">
+                          YT Shorts
+                          {socialTokens?.youtube && (
+                            <CheckCircle className="w-3 h-3 text-secondary" />
+                          )}
+                        </span>
                       </label>
 
-                      <label className="flex items-center gap-2 cursor-pointer">
+                      <label className="flex items-center gap-2 cursor-pointer group">
                         <Checkbox
                           checked={platforms.includes('twitter')}
                           onCheckedChange={() => togglePlatform('twitter')}
                           className="data-[state=checked]:bg-primary data-[state=checked]:border-primary"
                         />
-                        <span className="text-sm font-bold uppercase">X</span>
+                        <span className="text-sm font-bold uppercase flex items-center gap-1">
+                          X
+                          {socialTokens?.twitter && (
+                            <CheckCircle className="w-3 h-3 text-secondary" />
+                          )}
+                        </span>
                       </label>
                     </div>
 
@@ -1082,6 +1174,17 @@ Return a JSON object with three properties: "quotable", "hype", and "story". Eac
               exit={{ opacity: 0, y: -20 }}
             >
               <VaultSettings />
+            </motion.div>
+          )}
+
+          {currentView === 'social' && (
+            <motion.div
+              key="social"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+            >
+              <SocialMediaAuth />
             </motion.div>
           )}
         </AnimatePresence>

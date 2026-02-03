@@ -13,11 +13,11 @@ A comprehensive social media and content management platform designed for indepe
 ## Essential Features
 
 ### 1. Global Drop Engine
-- **Functionality**: Upload a single audio/video file with cover art and caption, auto-format for Instagram Reels, TikTok, YouTube Shorts, and X (Twitter) simultaneously
-- **Purpose**: Eliminate redundant work by allowing one-click multi-platform distribution with platform-specific optimization
+- **Functionality**: Upload a single audio/video file with cover art and caption, auto-format for Instagram Reels, TikTok, YouTube Shorts, and X (Twitter) simultaneously with real API posting
+- **Purpose**: Eliminate redundant work by allowing one-click multi-platform distribution with platform-specific optimization and real social media posting
 - **Trigger**: User uploads media file(s), writes caption, selects target platforms, and clicks "DROP IT"
-- **Progression**: File selection → Caption writing → Platform selection → Smart link generation → Multi-platform post creation → Confetti celebration → Post history
-- **Success criteria**: Media files uploaded, formatted correctly for each platform, posts simulated/queued, and smart link generated and appended to captions
+- **Progression**: File selection → Caption writing → Platform selection → Smart link generation → Real API calls to connected platforms → Multi-platform post creation → Confetti celebration → Post history
+- **Success criteria**: Media files uploaded, formatted correctly for each platform, posts successfully sent to authenticated platforms via APIs, and smart link generated and appended to captions
 
 ### 2. Smart Music Links
 - **Functionality**: Auto-generate branded smart link pages (like Linktree/Songwhip) when tracks are posted
@@ -82,16 +82,35 @@ A comprehensive social media and content management platform designed for indepe
 - **Progression**: App load → Metrics count up with animation → Progress bars fill → Neon glow effects applied
 - **Success criteria**: Metrics display with smooth animations, progress bars correlate to values, visual style matches theme
 
+### 11. Social Media API Authentication
+- **Functionality**: OAuth 2.0 authentication flow for Instagram, TikTok, YouTube, and Twitter/X with secure token management
+- **Purpose**: Enable real multi-platform posting via official platform APIs instead of simulated posts
+- **Trigger**: User navigates to "SOCIAL" tab and clicks "Connect [Platform]"
+- **Progression**: Platform selection → OAuth redirect to platform → User authorizes app → Callback with auth code → Token exchange → Token stored securely → Connection status updated
+- **Success criteria**: OAuth flow completes successfully, access tokens stored via useKV, token expiration tracked, connected platforms show checkmarks in UI, real API calls succeed when posting
+
+### 12. Real Multi-Platform Posting
+- **Functionality**: Actual API calls to Instagram Graph API, TikTok Content Posting API, YouTube Data API v3, and Twitter API v2
+- **Purpose**: Replace simulated posts with real uploads to social media platforms
+- **Trigger**: User clicks "DROP IT" with connected platforms selected
+- **Progression**: Caption + media prepared → API calls made concurrently to all connected platforms → Upload progress tracked → Success/failure per platform → Post URLs returned → Results displayed
+- **Success criteria**: Videos/images successfully uploaded to platforms, captions posted correctly, post URLs returned, errors handled gracefully with specific platform feedback
+
 ## Edge Case Handling
 
 - **No Credentials Configured**: Alert displayed on STUDIO/RELEASES tabs prompting user to configure Vault, uploads disabled
+- **No Social Platforms Connected**: Alert in DROP tab prompting user to connect platforms in SOCIAL tab, simulated posts still work
+- **Platform Authentication Expired**: Token expiration tracked, user prompted to reconnect when tokens expire
+- **OAuth Callback Errors**: Failed authentication handled with error messages, state parameter validated
+- **Partial Platform Failures**: Some platforms succeed while others fail - individual results shown per platform
 - **Missing Required Fields**: Toast error prevents form submission until track title, platforms, or credentials are provided
-- **File Size Limits**: Audio file size unlimited (within R2 limits), cover images capped at 5MB with validation
+- **File Size Limits**: Audio file size unlimited (within R2 limits), cover images capped at 5MB with validation, platform-specific size limits enforced
 - **Upload Failures**: Error status displayed with specific error message, progress bar resets, retry allowed
 - **GitHub API Errors**: 404 errors handled gracefully (creates new tracks.json), authentication errors surfaced to user
 - **Empty States**: All tabs show helpful empty states with guidance when no data exists
 - **Character Limits**: Platform-specific character counts enforced (Twitter 280, others 2200) with visual warnings
 - **Network Failures**: Error states displayed, retry mechanisms available
+- **Invalid Media Formats**: Platform-specific format validation (MP4 for video, JPG/PNG for images)
 
 ## Design Direction
 
@@ -171,7 +190,7 @@ Animations should reinforce the feeling of speed and precision—fast, snappy tr
 **Icon Selection** (Lucide React):
 - **Zap**: The Drop action (lightning fast posting)
 - **Upload**: File uploads, studio sync
-- **Music**: Audio files, tracks, releases
+- **Music**: Audio files, tracks, releases, TikTok platform
 - **Eye**: Preview functionality
 - **MessageCircle**: Comments, engagement
 - **Calendar**: Release scheduling
@@ -179,9 +198,13 @@ Animations should reinforce the feeling of speed and precision—fast, snappy tr
 - **Database**: Studio/uploads section
 - **Sparkles**: AI features, demo mode
 - **ExternalLink**: External URLs, website links
-- **CheckCircle**: Success states, synced status
+- **CheckCircle**: Success states, synced status, connected platforms
 - **AlertCircle**: Warnings, missing config
 - **Loader2**: Loading states (with spin animation)
+- **Instagram**: Instagram platform icon
+- **Youtube**: YouTube platform icon
+- **LogIn/LogOut**: Social media authentication
+- **Users**: Social media tab
 
 **Spacing**:
 - **Card Padding**: p-4 for compact cards, p-6 for primary content areas
