@@ -34,6 +34,7 @@ import {
 } from 'lucide-react'
 import { YouTubeVault } from '@/components/YouTubeVault'
 import { VaultSettings } from '@/components/VaultSettings'
+import { TestUploadHelper } from '@/components/TestUploadHelper'
 import { uploadConcurrent } from '@/lib/r2Uploader'
 import { updateTracksJSON, type TrackData } from '@/lib/githubAPI'
 
@@ -764,6 +765,8 @@ Voice: Authentic, Street, Technical, Energetic.`
                   </AlertDescription>
                 </Alert>
               )}
+
+              <TestUploadHelper />
 
               <Card className="border-2 border-zinc-800 bg-zinc-950/90 backdrop-blur-xl shadow-2xl">
                 <CardHeader className="border-b border-zinc-800/50">
