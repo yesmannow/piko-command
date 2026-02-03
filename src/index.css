@@ -105,6 +105,20 @@
   --radius-xl: calc(var(--radius) * 2);
   --radius-2xl: calc(var(--radius) * 3);
   --radius-full: 9999px;
+  
+  --font-size-2xs: 0.625rem;
+  --line-height-2xs: 0.75rem;
+  
+  --aspect-ratio-9/16: 9 / 16;
+}
+
+.text-2xs {
+  font-size: var(--font-size-2xs);
+  line-height: var(--line-height-2xs);
+}
+
+.aspect-9\/16 {
+  aspect-ratio: var(--aspect-ratio-9/16);
 }
 
 .graffiti-texture {

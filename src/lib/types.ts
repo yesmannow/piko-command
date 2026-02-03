@@ -1,32 +1,28 @@
+export interface PostHistory {
+  id: string
+  caption: string
+  platforms: string[]
+  timestamp: number
+  linkInBio: boolean
+}
+
 export interface HypeEvent {
-  timestamp:
+  id: string
   timestamp: string
-  
   payload: {
     caption: string
     mediaUrl?: string
     link?: string
-
-  
-
-    comments: number
-  
-    thumbnai
+    mediaType: 'video' | 'image' | 'audio'
   }
-
-  id: string
-  p
-  
-
-
-
-
-
-
-
-
-
-
-
-
-
+  platforms: ('instagram' | 'tiktok' | 'twitter' | 'facebook' | 'linkedin')[]
+  metrics: {
+    shares: number
+    fireEmojis: number
+    comments: number
+  }
+  previewData?: {
+    thumbnailUrl?: string
+    trackTitle?: string
+  }
+}

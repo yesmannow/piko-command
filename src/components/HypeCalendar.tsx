@@ -248,7 +248,7 @@ export function HypeCalendar({ onReUp }: HypeCalendarProps) {
                   <div className="p-1 rounded border border-zinc-700 bg-zinc-800/50">
                     <span className={cn(
                       "font-bold text-zinc-400",
-                      isCompact ? "text-[8px]" : "text-[10px]"
+                      isCompact ? "text-2xs" : "text-xs"
                     )}>
                       +{events[0].platforms.length - (isCompact ? 2 : 3)}
                     </span>
@@ -257,7 +257,7 @@ export function HypeCalendar({ onReUp }: HypeCalendarProps) {
               </div>
               
               {!isCompact && (
-                <div className="flex items-center gap-1 text-[10px] font-bold text-lime-400 mt-auto">
+                <div className="flex items-center gap-1 text-xs font-bold text-lime-400 mt-auto">
                   <Flame className="w-3 h-3" />
                   <span>{events[0].metrics.fireEmojis}</span>
                 </div>
