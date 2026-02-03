@@ -434,9 +434,26 @@ Voice: Authentic, Street, Technical, Energetic.`
         setUploadStage('')
       }, 3000)
     } catch (error) {
+      console.error('Upload error details:', error)
       setUploadStatus('error')
-      setUploadStage('Upload failed')
-      toast.error(`Upload failed: ${error instanceof Error ? error.message : 'Unknown error'}`)
+      
+      let errorMessage = 'Unknown error'
+      if (error instanceof Error) {
+        errorMessage = error.message
+        
+        if (errorMessage.includes('Access Denied') || errorMessage.includes('403')) {
+          errorMessage = 'R2 Access Denied - Check your credentials and bucket permissions'
+        } else if (errorMessage.includes('NetworkingError') || errorMessage.includes('CORS')) {
+          errorMessage = 'Network error - Ensure R2 bucket has CORS enabled for browser access'
+        } else if (errorMessage.includes('NoSuchBucket')) {
+          errorMessage = 'R2 bucket not found - Check bucket name'
+        } else if (errorMessage.includes('GitHub') || errorMessage.includes('git')) {
+          errorMessage = 'GitHub sync failed - ' + errorMessage
+        }
+      }
+      
+      setUploadStage(`Failed: ${errorMessage}`)
+      toast.error(`Upload failed: ${errorMessage}`)
       setAudioUploadProgress(0)
       setCoverUploadProgress(0)
     } finally {
@@ -963,6 +980,23 @@ Voice: Authentic, Street, Technical, Energetic.`
                     <Upload className="w-5 h-5 mr-2" />
                     {isUploading ? 'UPLOADING...' : 'UPLOAD & SYNC'}
                   </Button>
+
+                  {uploadStatus === 'error' && (
+                    <Alert className="border-2 border-red-500/50 bg-red-500/10">
+                      <AlertCircle className="w-5 h-5 text-red-400" />
+                      <AlertDescription className="text-red-400">
+                        <div className="space-y-2">
+                          <p className="font-bold">Common issues:</p>
+                          <ul className="text-xs space-y-1 list-disc list-inside">
+                            <li>Check R2 credentials are correct in THE VAULT tab</li>
+                            <li>Ensure R2 bucket has CORS enabled for browser uploads</li>
+                            <li>Verify GitHub token has repo write permissions</li>
+                            <li>Check browser console for detailed error messages</li>
+                          </ul>
+                        </div>
+                      </AlertDescription>
+                    </Alert>
+                  )}
                 </CardContent>
               </Card>
 

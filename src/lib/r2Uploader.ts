@@ -19,94 +19,120 @@ export async function uploadConcurrent(
   audioProgressCallback?: (progress: number) => void,
   coverProgressCallback?: (progress: number) => void
 ): Promise<UploadResult> {
-  const s3Client = new S3Client({
-    region: 'auto',
-    endpoint: `https://${credentials.r2AccountId}.r2.cloudflarestorage.com`,
-    credentials: {
-      accessKeyId: credentials.r2AccessKey,
-      secretAccessKey: credentials.r2SecretKey,
-    },
-  })
-
-  const timestamp = Date.now()
-  const sanitizeFilename = (filename: string) => {
-    return filename.replace(/[^a-zA-Z0-9.-]/g, '_')
-  }
-
-  const audioFilename = `${timestamp}_${sanitizeFilename(audioFile.name)}`
-  const audioKey = `tracks/${audioFilename}`
-
-  const uploadPromises: Promise<any>[] = []
-
-  const audioUploadPromise = (async () => {
-    const audioBuffer = await audioFile.arrayBuffer()
-    
-    if (audioProgressCallback) {
-      audioProgressCallback(30)
-    }
-
-    const audioCommand = new PutObjectCommand({
-      Bucket: credentials.r2BucketName,
-      Key: audioKey,
-      Body: new Uint8Array(audioBuffer),
-      ContentType: audioFile.type,
+  try {
+    const s3Client = new S3Client({
+      region: 'auto',
+      endpoint: `https://${credentials.r2AccountId}.r2.cloudflarestorage.com`,
+      credentials: {
+        accessKeyId: credentials.r2AccessKey,
+        secretAccessKey: credentials.r2SecretKey,
+      },
     })
 
-    if (audioProgressCallback) {
-      audioProgressCallback(60)
+    const timestamp = Date.now()
+    const sanitizeFilename = (filename: string) => {
+      return filename.replace(/[^a-zA-Z0-9.-]/g, '_')
     }
 
-    await s3Client.send(audioCommand)
+    const audioFilename = `${timestamp}_${sanitizeFilename(audioFile.name)}`
+    const audioKey = `tracks/${audioFilename}`
 
-    if (audioProgressCallback) {
-      audioProgressCallback(100)
-    }
+    const uploadPromises: Promise<any>[] = []
 
-    return `https://${credentials.r2BucketName}.${credentials.r2AccountId}.r2.cloudflarestorage.com/${audioKey}`
-  })()
+    const audioUploadPromise = (async () => {
+      try {
+        if (audioProgressCallback) {
+          audioProgressCallback(10)
+        }
 
-  uploadPromises.push(audioUploadPromise)
+        const audioBuffer = await audioFile.arrayBuffer()
+        
+        if (audioProgressCallback) {
+          audioProgressCallback(30)
+        }
 
-  let coverUploadPromise: Promise<string | undefined> = Promise.resolve(undefined)
+        const audioCommand = new PutObjectCommand({
+          Bucket: credentials.r2BucketName,
+          Key: audioKey,
+          Body: new Uint8Array(audioBuffer),
+          ContentType: audioFile.type || 'audio/mpeg',
+        })
 
-  if (coverImageFile) {
-    coverUploadPromise = (async () => {
-      const coverFilename = `${timestamp}_${sanitizeFilename(coverImageFile.name)}`
-      const coverKey = `covers/${coverFilename}`
+        if (audioProgressCallback) {
+          audioProgressCallback(60)
+        }
 
-      const coverBuffer = await coverImageFile.arrayBuffer()
+        await s3Client.send(audioCommand)
 
-      if (coverProgressCallback) {
-        coverProgressCallback(30)
+        if (audioProgressCallback) {
+          audioProgressCallback(100)
+        }
+
+        return `https://${credentials.r2BucketName}.${credentials.r2AccountId}.r2.cloudflarestorage.com/${audioKey}`
+      } catch (error) {
+        console.error('Audio upload error:', error)
+        throw new Error(`Audio upload failed: ${error instanceof Error ? error.message : 'Unknown error'}`)
       }
-
-      const coverCommand = new PutObjectCommand({
-        Bucket: credentials.r2BucketName,
-        Key: coverKey,
-        Body: new Uint8Array(coverBuffer),
-        ContentType: coverImageFile.type,
-      })
-
-      if (coverProgressCallback) {
-        coverProgressCallback(60)
-      }
-
-      await s3Client.send(coverCommand)
-
-      if (coverProgressCallback) {
-        coverProgressCallback(100)
-      }
-
-      return `https://${credentials.r2BucketName}.${credentials.r2AccountId}.r2.cloudflarestorage.com/${coverKey}`
     })()
 
-    uploadPromises.push(coverUploadPromise)
-  }
+    uploadPromises.push(audioUploadPromise)
 
-  const [audioUrl, coverImageUrl] = await Promise.all([audioUploadPromise, coverUploadPromise])
+    let coverUploadPromise: Promise<string | undefined> = Promise.resolve(undefined)
 
-  return {
-    audioUrl,
-    coverImageUrl,
+    if (coverImageFile) {
+      coverUploadPromise = (async () => {
+        try {
+          const coverFilename = `${timestamp}_${sanitizeFilename(coverImageFile.name)}`
+          const coverKey = `covers/${coverFilename}`
+
+          if (coverProgressCallback) {
+            coverProgressCallback(10)
+          }
+
+          const coverBuffer = await coverImageFile.arrayBuffer()
+
+          if (coverProgressCallback) {
+            coverProgressCallback(30)
+          }
+
+          const coverCommand = new PutObjectCommand({
+            Bucket: credentials.r2BucketName,
+            Key: coverKey,
+            Body: new Uint8Array(coverBuffer),
+            ContentType: coverImageFile.type || 'image/png',
+          })
+
+          if (coverProgressCallback) {
+            coverProgressCallback(60)
+          }
+
+          await s3Client.send(coverCommand)
+
+          if (coverProgressCallback) {
+            coverProgressCallback(100)
+          }
+
+          return `https://${credentials.r2BucketName}.${credentials.r2AccountId}.r2.cloudflarestorage.com/${coverKey}`
+        } catch (error) {
+          console.error('Cover upload error:', error)
+          throw new Error(`Cover upload failed: ${error instanceof Error ? error.message : 'Unknown error'}`)
+        }
+      })()
+
+      uploadPromises.push(coverUploadPromise)
+    }
+
+    const [audioUrl, coverImageUrl] = await Promise.all([audioUploadPromise, coverUploadPromise])
+
+    return {
+      audioUrl,
+      coverImageUrl,
+    }
+  } catch (error) {
+    console.error('Upload function error:', error)
+    if (error instanceof Error) {
+      throw error
+    }
+    throw new Error('Upload failed with unknown error')
   }
 }

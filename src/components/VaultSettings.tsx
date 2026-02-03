@@ -196,6 +196,22 @@ export function VaultSettings() {
                   <strong className="text-foreground">💡 Pro Tip:</strong> All credentials are stored securely in your browser using encrypted persistence. They never leave your device.
                 </p>
               </div>
+
+              <Alert className="border-primary/50 bg-primary/5">
+                <Info className="w-4 h-4 text-primary" />
+                <AlertDescription className="text-xs">
+                  <strong className="text-primary">Need detailed help?</strong> Check the{' '}
+                  <a
+                    href="https://github.com/yourusername/piko-command/blob/main/R2_GITHUB_SETUP.md"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-primary underline hover:text-primary/80"
+                  >
+                    R2_GITHUB_SETUP.md
+                  </a>
+                  {' '}guide for step-by-step instructions with screenshots, troubleshooting tips, and CORS configuration.
+                </AlertDescription>
+              </Alert>
             </CardContent>
           </CollapsibleContent>
         </Card>

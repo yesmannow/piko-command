@@ -1,7 +1,8 @@
 import { useState } from 'react'
+import { useKV } from '@github/spark/hooks'
+import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Alert, AlertDescription } from '@/comp
-import { Badge } from '@/components/ui/badge'
+import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Progress } from '@/components/ui/progress'
 import { Badge } from '@/components/ui/badge'
 import { toast } from 'sonner'
@@ -11,7 +12,27 @@ interface TestUploadHelperProps {
   onTestComplete?: () => void
 }
 
+interface VaultCredentials {
+  r2AccessKey: string
+  r2SecretKey: string
+  r2BucketName: string
+  r2AccountId: string
+  githubToken: string
+  githubRepo: string
+  githubOwner: string
+}
+
 export function TestUploadHelper({ onTestComplete }: TestUploadHelperProps) {
+  const [credentials] = useKV<VaultCredentials>('vault-credentials', {
+    r2AccessKey: '',
+    r2SecretKey: '',
+    r2BucketName: '',
+    r2AccountId: '',
+    githubToken: '',
+    githubRepo: '',
+    githubOwner: ''
+  })
+
   const [isRunningTest, setIsRunningTest] = useState(false)
   const [testProgress, setTestProgress] = useState(0)
   const [testStage, setTestStage] = useState('')
@@ -34,10 +55,9 @@ export function TestUploadHelper({ onTestComplete }: TestUploadHelperProps) {
     for (let channel = 0; channel < numChannels; channel++) {
       const channelData = audioBuffer.getChannelData(channel)
       for (let i = 0; i < numSamples; i++) {
-    }
-    const wav = audioBuf
-    return new File([blob], 'test-track-demo.wav', { type: 'aud
-
+        const frequency = 440
+        channelData[i] = Math.sin(2 * Math.PI * frequency * i / sampleRate) * 0.3
+      }
     }
     
     const wav = audioBufferToWav(audioBuffer)
@@ -111,41 +131,29 @@ export function TestUploadHelper({ onTestComplete }: TestUploadHelperProps) {
     ctx.fillStyle = gradient
     ctx.fillRect(0, 0, 400, 400)
     
+    return new Promise<File>((resolve) => {
+      canvas.toBlob((blob) => {
         if (blob) {
+          const file = new File([blob], 'test-cover.png', { type: 'image/png' })
           resolve(file)
+        }
       }, 'image/png')
+    })
   }
-  const runIntegrationTest = async
+
+  const runIntegrationTest = async () => {
+    setIsRunningTest(true)
     setTestProgress(0)
     
     try {
-      setTestStage('Checking cr
-      const storedC
-      if (!storedCreds || !storedCreds.r2AccessKey || !storedCreds.r2SecretKey |
-        throw new Error
-
-        throw new Err
-
-   
-
-      setTestProgress(30)
+      setTestStage('Checking credentials...')
+      setTestProgress(10)
       
-      
-      setTestStage('Simu
-      await new Promise(resolve => setTi
-
-      
-      
-      setTestStage('Finalizing...')
-      
-      
-      
-      setTestResults({
-        message: 'Integration test successful! Your R2 and GitHub 
+      if (!credentials || !credentials.r2AccessKey || !credentials.r2SecretKey || !credentials.r2BucketName || !credentials.r2AccountId) {
         throw new Error('R2 credentials not configured. Please configure in THE VAULT tab.')
       }
 
-      if (!storedCreds.githubToken || !storedCreds.githubRepo || !storedCreds.githubOwner) {
+      if (!credentials.githubToken || !credentials.githubRepo || !credentials.githubOwner) {
         throw new Error('GitHub credentials not configured. Please configure in THE VAULT tab.')
       }
 
@@ -172,8 +180,8 @@ export function TestUploadHelper({ onTestComplete }: TestUploadHelperProps) {
       setTestProgress(80)
       setTestStage('Finalizing...')
       
-      const mockAudioUrl = `https://${storedCreds.r2BucketName}.${storedCreds.r2AccountId}.r2.cloudflarestorage.com/tracks/test-track-demo.wav`
-      const mockCoverUrl = `https://${storedCreds.r2BucketName}.${storedCreds.r2AccountId}.r2.cloudflarestorage.com/covers/test-cover.png`
+      const mockAudioUrl = `https://${credentials.r2BucketName}.${credentials.r2AccountId}.r2.cloudflarestorage.com/tracks/test-track-demo.wav`
+      const mockCoverUrl = `https://${credentials.r2BucketName}.${credentials.r2AccountId}.r2.cloudflarestorage.com/covers/test-cover.png`
       
       setTestProgress(100)
       setTestStage('Test complete!')
@@ -286,26 +294,14 @@ export function TestUploadHelper({ onTestComplete }: TestUploadHelperProps) {
 
         <div className="space-y-2 text-sm">
           <p className="font-bold text-muted-foreground uppercase tracking-wide text-xs">What this test does:</p>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+          <ul className="list-disc list-inside text-muted-foreground space-y-1 text-xs">
+            <li>Validates R2 and GitHub credentials are configured</li>
+            <li>Generates a 3-second test audio file (440Hz tone)</li>
+            <li>Creates a colorful gradient cover image</li>
+            <li>Simulates the upload and sync workflow</li>
+          </ul>
+        </div>
+      </CardContent>
+    </Card>
+  )
+}
