@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
-import { Alert, AlertDescription } from '@/components/ui/alert'
+import { Alert, AlertDescription } from '@/comp
+import { Badge } from '@/components/ui/badge'
 import { Progress } from '@/components/ui/progress'
 import { Badge } from '@/components/ui/badge'
 import { toast } from 'sonner'
@@ -34,10 +34,10 @@ export function TestUploadHelper({ onTestComplete }: TestUploadHelperProps) {
     for (let channel = 0; channel < numChannels; channel++) {
       const channelData = audioBuffer.getChannelData(channel)
       for (let i = 0; i < numSamples; i++) {
-        const t = i / sampleRate
-        const freq = 440
-        channelData[i] = Math.sin(2 * Math.PI * freq * t) * 0.3
-      }
+    }
+    const wav = audioBuf
+    return new File([blob], 'test-track-demo.wav', { type: 'aud
+
     }
     
     const wav = audioBufferToWav(audioBuffer)
@@ -111,37 +111,37 @@ export function TestUploadHelper({ onTestComplete }: TestUploadHelperProps) {
     ctx.fillStyle = gradient
     ctx.fillRect(0, 0, 400, 400)
     
-    ctx.fillStyle = 'rgba(0, 0, 0, 0.3)'
-    ctx.font = 'bold 48px Arial'
-    ctx.textAlign = 'center'
-    ctx.textBaseline = 'middle'
-    ctx.fillText('TEST', 200, 180)
-    ctx.fillText('TRACK', 200, 240)
-    
-    return new Promise((resolve) => {
-      canvas.toBlob((blob) => {
         if (blob) {
-          const file = new File([blob], 'test-cover.png', { type: 'image/png' })
           resolve(file)
-        }
       }, 'image/png')
-    })
   }
-
-  const runIntegrationTest = async () => {
-    setIsRunningTest(true)
+  const runIntegrationTest = async
     setTestProgress(0)
-    setTestResults(null)
-    setTestStage('Initializing test...')
-
+    
     try {
-      setTestProgress(10)
-      setTestStage('Checking credentials...')
+      setTestStage('Checking cr
+      const storedC
+      if (!storedCreds || !storedCreds.r2AccessKey || !storedCreds.r2SecretKey |
+        throw new Error
+
+        throw new Err
+
+   
+
+      setTestProgress(30)
       
-      const storedCreds = await window.spark.kv.get<any>('vault-credentials')
       
-      if (!storedCreds || !storedCreds.r2AccessKey || !storedCreds.r2SecretKey || 
-          !storedCreds.r2BucketName || !storedCreds.r2AccountId) {
+      setTestStage('Simu
+      await new Promise(resolve => setTi
+
+      
+      
+      setTestStage('Finalizing...')
+      
+      
+      
+      setTestResults({
+        message: 'Integration test successful! Your R2 and GitHub 
         throw new Error('R2 credentials not configured. Please configure in THE VAULT tab.')
       }
 
@@ -286,26 +286,26 @@ export function TestUploadHelper({ onTestComplete }: TestUploadHelperProps) {
 
         <div className="space-y-2 text-sm">
           <p className="font-bold text-muted-foreground uppercase tracking-wide text-xs">What this test does:</p>
-          <ul className="space-y-1 text-muted-foreground text-xs">
-            <li className="flex items-start gap-2">
-              <CheckCircle className="w-3 h-3 mt-0.5 text-primary flex-shrink-0" />
-              <span>Validates R2 and GitHub credentials are configured</span>
-            </li>
-            <li className="flex items-start gap-2">
-              <CheckCircle className="w-3 h-3 mt-0.5 text-primary flex-shrink-0" />
-              <span>Generates a 3-second test audio file (440Hz tone)</span>
-            </li>
-            <li className="flex items-start gap-2">
-              <CheckCircle className="w-3 h-3 mt-0.5 text-primary flex-shrink-0" />
-              <span>Creates a colorful gradient cover image</span>
-            </li>
-            <li className="flex items-start gap-2">
-              <CheckCircle className="w-3 h-3 mt-0.5 text-primary flex-shrink-0" />
-              <span>Simulates the upload and sync workflow</span>
-            </li>
-          </ul>
-        </div>
-      </CardContent>
-    </Card>
-  )
-}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
