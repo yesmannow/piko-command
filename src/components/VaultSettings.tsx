@@ -4,8 +4,10 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Button } from '@/components/ui/button'
+import { Alert, AlertDescription } from '@/components/ui/alert'
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible'
 import { toast } from 'sonner'
-import { Key, Github, Database, Eye, EyeOff, Save } from 'lucide-react'
+import { Key, Github, Database, Eye, EyeOff, Save, CheckCircle, AlertCircle, ChevronDown, Info } from 'lucide-react'
 
 interface VaultCredentials {
   r2AccessKey: string
@@ -33,6 +35,8 @@ export function VaultSettings() {
     githubToken: false
   })
 
+  const [showSetupGuide, setShowSetupGuide] = useState(false)
+
   const handleSave = () => {
     if (!credentials) return
     
@@ -55,7 +59,7 @@ export function VaultSettings() {
       return
     }
 
-    setCredentials(credentials)
+    setCredentials((current) => current || credentials)
     toast.success('Vault credentials saved securely!')
   }
 
@@ -78,8 +82,98 @@ export function VaultSettings() {
     setShowSecrets(prev => ({ ...prev, [key]: !prev[key] }))
   }
 
+  const isR2Configured = () => {
+    return !!(
+      credentials?.r2AccessKey &&
+      credentials?.r2SecretKey &&
+      credentials?.r2BucketName &&
+      credentials?.r2AccountId
+    )
+  }
+
+  const isGitHubConfigured = () => {
+    return !!(
+      credentials?.githubToken &&
+      credentials?.githubRepo &&
+      credentials?.githubOwner
+    )
+  }
+
   return (
     <div className="space-y-6">
+      <Alert className={isR2Configured() && isGitHubConfigured() ? 'border-secondary bg-secondary/10' : 'border-accent bg-accent/10'}>
+        <div className="flex items-center gap-2">
+          {isR2Configured() && isGitHubConfigured() ? (
+            <>
+              <CheckCircle className="w-5 h-5 text-secondary" />
+              <AlertDescription className="text-secondary font-bold">
+                Vault configured! Track uploads are ready.
+              </AlertDescription>
+            </>
+          ) : (
+            <>
+              <AlertCircle className="w-5 h-5 text-accent" />
+              <AlertDescription className="text-accent font-bold">
+                Configure credentials below to enable track uploads.
+              </AlertDescription>
+            </>
+          )}
+        </div>
+      </Alert>
+
+      <Collapsible open={showSetupGuide} onOpenChange={setShowSetupGuide}>
+        <Card className="studio-card border-primary/30">
+          <CardHeader className="pb-3">
+            <CollapsibleTrigger className="w-full">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <Info className="w-5 h-5 text-primary" />
+                  <CardTitle className="text-lg uppercase tracking-tight">Setup Guide</CardTitle>
+                </div>
+                <ChevronDown className={`w-5 h-5 text-primary transition-transform ${showSetupGuide ? 'rotate-180' : ''}`} />
+              </div>
+            </CollapsibleTrigger>
+          </CardHeader>
+          <CollapsibleContent>
+            <CardContent className="space-y-4 text-sm">
+              <div className="space-y-2">
+                <h4 className="font-black uppercase text-secondary flex items-center gap-2">
+                  <Database className="w-4 h-4" />
+                  Step 1: Cloudflare R2
+                </h4>
+                <ol className="list-decimal list-inside space-y-1 text-muted-foreground ml-2">
+                  <li>Go to Cloudflare Dashboard → R2 → Overview</li>
+                  <li>Copy your <strong>Account ID</strong></li>
+                  <li>Create a bucket (e.g., "piko-tracks") or use existing one</li>
+                  <li>Go to "Manage R2 API Tokens" → Create API Token</li>
+                  <li>Choose "Edit" permissions, copy <strong>Access Key ID</strong> and <strong>Secret Access Key</strong></li>
+                </ol>
+              </div>
+
+              <div className="space-y-2">
+                <h4 className="font-black uppercase text-primary flex items-center gap-2">
+                  <Github className="w-4 h-4" />
+                  Step 2: GitHub
+                </h4>
+                <ol className="list-decimal list-inside space-y-1 text-muted-foreground ml-2">
+                  <li>Go to GitHub Settings → Developer settings → Personal access tokens → Tokens (classic)</li>
+                  <li>Click "Generate new token (classic)"</li>
+                  <li>Select scopes: <strong>repo</strong> (all), <strong>workflow</strong></li>
+                  <li>Generate and copy the token (starts with "ghp_")</li>
+                  <li>Enter your GitHub username as "Owner" and repository name (e.g., "piko-artist-website")</li>
+                </ol>
+              </div>
+
+              <div className="p-3 rounded bg-muted/30 border border-border">
+                <p className="text-xs text-muted-foreground">
+                  <strong className="text-foreground">💡 Pro Tip:</strong> All credentials are stored securely in your browser using encrypted persistence. They never leave your device.
+                </p>
+              </div>
+            </CardContent>
+          </CollapsibleContent>
+        </Card>
+      </Collapsible>
+
       <Card className="studio-card">
         <CardHeader>
           <CardTitle className="text-2xl uppercase tracking-tight flex items-center gap-2">
@@ -87,7 +181,7 @@ export function VaultSettings() {
             CLOUDFLARE R2 STORAGE
           </CardTitle>
           <CardDescription>
-            Configure your R2 bucket for secure track uploads
+            Configure your R2 bucket for secure track uploads. Get credentials from Cloudflare Dashboard → R2 → Manage R2 API Tokens.
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
@@ -96,9 +190,12 @@ export function VaultSettings() {
             <Input
               value={credentials?.r2AccountId || ''}
               onChange={(e) => updateCredential('r2AccountId', e.target.value)}
-              placeholder="Enter R2 Account ID"
+              placeholder="e.g., a1b2c3d4e5f6g7h8i9j0"
               className="bg-muted/50 font-mono"
             />
+            <p className="text-xs text-muted-foreground">
+              Found in Cloudflare Dashboard → R2 → Overview
+            </p>
           </div>
 
           <div className="space-y-2">
@@ -106,9 +203,12 @@ export function VaultSettings() {
             <Input
               value={credentials?.r2BucketName || ''}
               onChange={(e) => updateCredential('r2BucketName', e.target.value)}
-              placeholder="Enter bucket name"
+              placeholder="e.g., piko-tracks"
               className="bg-muted/50 font-mono"
             />
+            <p className="text-xs text-muted-foreground">
+              Your R2 bucket name (create one in R2 Dashboard if needed)
+            </p>
           </div>
 
           <div className="space-y-2">
@@ -116,9 +216,12 @@ export function VaultSettings() {
             <Input
               value={credentials?.r2AccessKey || ''}
               onChange={(e) => updateCredential('r2AccessKey', e.target.value)}
-              placeholder="Enter R2 Access Key"
+              placeholder="e.g., 1a2b3c4d5e6f7g8h9i0j"
               className="bg-muted/50 font-mono"
             />
+            <p className="text-xs text-muted-foreground">
+              R2 API Token Access Key ID
+            </p>
           </div>
 
           <div className="space-y-2">
@@ -139,9 +242,12 @@ export function VaultSettings() {
               type={showSecrets.r2SecretKey ? 'text' : 'password'}
               value={credentials?.r2SecretKey || ''}
               onChange={(e) => updateCredential('r2SecretKey', e.target.value)}
-              placeholder="Enter R2 Secret Key"
+              placeholder="Enter R2 Secret Access Key"
               className="bg-muted/50 font-mono"
             />
+            <p className="text-xs text-muted-foreground">
+              R2 API Token Secret (shown when you create the token)
+            </p>
           </div>
         </CardContent>
       </Card>
@@ -153,7 +259,7 @@ export function VaultSettings() {
             GITHUB INTEGRATION
           </CardTitle>
           <CardDescription>
-            Automatically update your website repo when tracks are uploaded
+            Automatically update your website repo when tracks are uploaded. Create a token at GitHub Settings → Developer settings → Personal access tokens (classic).
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
@@ -195,11 +301,11 @@ export function VaultSettings() {
               type={showSecrets.githubToken ? 'text' : 'password'}
               value={credentials?.githubToken || ''}
               onChange={(e) => updateCredential('githubToken', e.target.value)}
-              placeholder="ghp_xxxxxxxxxxxx"
+              placeholder="ghp_xxxxxxxxxxxxxxxxxxxx"
               className="bg-muted/50 font-mono"
             />
             <p className="text-xs text-muted-foreground">
-              Requires: repo, workflow permissions
+              Requires: <strong>repo</strong> and <strong>workflow</strong> scopes
             </p>
           </div>
         </CardContent>

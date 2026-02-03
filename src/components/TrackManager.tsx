@@ -6,8 +6,9 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Progress } from '@/components/ui/progress'
 import { Badge } from '@/components/ui/badge'
+import { Alert, AlertDescription } from '@/components/ui/alert'
 import { toast } from 'sonner'
-import { Upload, Music, CheckCircle, ExternalLink, Loader2, Globe, AlertCircle } from 'lucide-react'
+import { Upload, Music, CheckCircle, ExternalLink, Loader2, Globe, AlertCircle, Settings } from 'lucide-react'
 
 interface VaultCredentials {
   r2AccessKey: string
@@ -201,7 +202,7 @@ export function TrackManager() {
       setUploadProgress(100)
       setUploadStatus('success')
 
-      setUploadedTracks(prev => [trackData, ...(prev || [])])
+      setUploadedTracks((currentTracks) => [trackData, ...(currentTracks || [])])
 
       toast.success(`${metadata.title} uploaded and synced!`)
       
@@ -223,6 +224,16 @@ export function TrackManager() {
 
   return (
     <div className="space-y-6">
+      {!validateCredentials() && (
+        <Alert className="border-accent bg-accent/10">
+          <AlertCircle className="w-5 h-5 text-accent" />
+          <AlertDescription className="text-accent font-bold flex items-center justify-between">
+            <span>Configure R2 and GitHub credentials in the Vault tab first.</span>
+            <Settings className="w-4 h-4" />
+          </AlertDescription>
+        </Alert>
+      )}
+
       <Card className="studio-card">
         <CardHeader>
           <CardTitle className="text-2xl uppercase tracking-tight flex items-center gap-2">
