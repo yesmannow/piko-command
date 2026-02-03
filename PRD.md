@@ -26,12 +26,12 @@ A brutalist, browser-intent-based social media distribution platform designed fo
 - **Progression**: Button click → AI analyzes input → Three caption variants generated ([Hype], [Promo], [Viral]) → User selects preferred style → Caption populated in main field
 - **Success criteria**: AI returns three distinct captions under character limits, each optimized for different platform contexts
 
-### 3. YouTube Video Vault
-- **Functionality**: Display PIKO's latest YouTube videos with quick-share buttons to inject video URLs directly into the composer
-- **Purpose**: Streamline promotion of YouTube content by providing instant access to video library
-- **Trigger**: Vault displays automatically on Launchpad view
-- **Progression**: App loads → Mock YouTube videos displayed with thumbnails → User clicks "Quick Share" → Video title + URL injected into caption field
-- **Success criteria**: Video list displays with thumbnails and metadata, quick-share injects correct URL and title into composer
+### 3. YouTube Video Vault (Real API Integration)
+- **Functionality**: Display PIKO's actual latest YouTube videos via YouTube Data API v3 with quick-share buttons to inject video URLs directly into the composer
+- **Purpose**: Streamline promotion of YouTube content by providing instant access to real video library with live data
+- **Trigger**: Vault displays automatically on Launchpad view, refreshes on demand
+- **Progression**: App loads → YouTube API fetches latest 10 videos with thumbnails, titles, view counts, and publish dates → Videos displayed in scrollable vault → User clicks "Quick Share" → Video title + URL injected into caption field → Optional: User configures API key in settings panel
+- **Success criteria**: Real YouTube videos fetched via API, displays with actual thumbnails/metadata/view counts, graceful fallback to mock data if no API key configured, quick-share injects correct URL and title into composer, API key persists between sessions
 
 ### 4. Post History Tracking
 - **Functionality**: Persistent log of all distributed posts with platforms, captions, and timestamps
@@ -56,7 +56,10 @@ A brutalist, browser-intent-based social media distribution platform designed fo
 - **Empty Post History**: Clean empty state with guidance to make first post
 - **AI Generation Failed**: Error toast with retry option, original caption preserved
 - **Character Limit Exceeded**: Visual warning shown, but posting still allowed (platforms will truncate)
-- **YouTube Vault Loading**: Skeleton loaders displayed while mock videos load
+- **YouTube API Key Not Configured**: Vault shows mock data with clear indicator, settings panel allows API key entry
+- **YouTube API Request Failed**: Error toast displayed, graceful fallback to mock data, retry option available
+- **YouTube API Rate Limit Hit**: Error message displayed with explanation, mock data shown as fallback
+- **Invalid/Expired API Key**: Clear error message with link to Google Cloud Console for key regeneration
 
 ## Design Direction
 
