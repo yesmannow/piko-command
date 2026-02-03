@@ -40,6 +40,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import confetti from 'canvas-confetti'
 import { VaultSettings } from '@/components/VaultSettings'
 import { TrackManager } from '@/components/TrackManager'
+import { ReleasesView } from '@/components/ReleasesView'
 
 interface MediaFile {
   id: string
@@ -101,7 +102,7 @@ function App() {
   const [isDropping, setIsDropping] = useState(false)
   const [isDragging, setIsDragging] = useState(false)
   const [playingVideo, setPlayingVideo] = useState(false)
-  const [currentView, setCurrentView] = useState<'drop' | 'preview' | 'comments' | 'calendar' | 'vault' | 'studio'>('drop')
+  const [currentView, setCurrentView] = useState<'drop' | 'preview' | 'comments' | 'calendar' | 'vault' | 'studio' | 'releases'>('drop')
   const [showLyricDialog, setShowLyricDialog] = useState(false)
   const [lyrics, setLyrics] = useState('')
   const [isAnalyzing, setIsAnalyzing] = useState(false)
@@ -460,9 +461,17 @@ Return a JSON object with three properties: "quotable", "hype", and "story". Eac
             STUDIO
           </Button>
           <Button
+            variant={currentView === 'releases' ? 'default' : 'outline'}
+            onClick={() => setCurrentView('releases')}
+            className={currentView === 'releases' ? 'bg-secondary text-secondary-foreground' : ''}
+          >
+            <Music className="w-4 h-4 mr-2" />
+            RELEASES
+          </Button>
+          <Button
             variant={currentView === 'vault' ? 'default' : 'outline'}
             onClick={() => setCurrentView('vault')}
-            className={currentView === 'vault' ? 'bg-secondary text-secondary-foreground' : ''}
+            className={currentView === 'vault' ? 'bg-primary text-primary-foreground' : ''}
           >
             <Settings className="w-4 h-4 mr-2" />
             VAULT
@@ -1051,6 +1060,17 @@ Return a JSON object with three properties: "quotable", "hype", and "story". Eac
               exit={{ opacity: 0, y: -20 }}
             >
               <TrackManager />
+            </motion.div>
+          )}
+
+          {currentView === 'releases' && (
+            <motion.div
+              key="releases"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+            >
+              <ReleasesView />
             </motion.div>
           )}
 

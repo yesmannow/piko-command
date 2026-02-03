@@ -8,7 +8,7 @@ import { Progress } from '@/components/ui/progress'
 import { Badge } from '@/components/ui/badge'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { toast } from 'sonner'
-import { Upload, Music, CheckCircle, ExternalLink, Loader2, Globe, AlertCircle, Settings, Sparkles } from 'lucide-react'
+import { Upload, Music, CheckCircle, ExternalLink, Loader2, Globe, AlertCircle, Settings, Sparkles, Image as ImageIcon, X } from 'lucide-react'
 import confetti from 'canvas-confetti'
 
 interface VaultCredentials {
@@ -31,7 +31,9 @@ interface UploadedTrack {
   id: string
   title: string
   artist: string
-  r2Url: string
+  audioUrl: string
+  coverImageUrl?: string
+  releaseDate?: string
   uploadedAt: number
 }
 
@@ -47,7 +49,9 @@ export function TrackManager() {
   })
   const [uploadedTracks, setUploadedTracks] = useKV<UploadedTrack[]>('uploaded-tracks', [])
   
-  const [selectedFile, setSelectedFile] = useState<File | null>(null)
+  const [selectedAudioFile, setSelectedAudioFile] = useState<File | null>(null)
+  const [selectedCoverImage, setSelectedCoverImage] = useState<File | null>(null)
+  const [coverPreview, setCoverPreview] = useState<string | null>(null)
   const [metadata, setMetadata] = useState<TrackMetadata>({
     title: '',
     artist: 'PIKO',
@@ -56,7 +60,9 @@ export function TrackManager() {
   const [uploadProgress, setUploadProgress] = useState(0)
   const [isUploading, setIsUploading] = useState(false)
   const [uploadStatus, setUploadStatus] = useState<'idle' | 'uploading' | 'syncing' | 'success' | 'error'>('idle')
-  const fileInputRef = useRef<HTMLInputElement>(null)
+  const [uploadStage, setUploadStage] = useState<string>('')
+  const audioFileInputRef = useRef<HTMLInputElement>(null)
+  const coverImageInputRef = useRef<HTMLInputElement>(null)
 
   const validateCredentials = () => {
     if (!credentials) return false
@@ -71,7 +77,7 @@ export function TrackManager() {
     )
   }
 
-  const handleFileSelect = (files: FileList | null) => {
+  const handleAudioFileSelect = (files: FileList | null) => {
     if (!files || files.length === 0) return
 
     const file = files[0]
@@ -80,17 +86,49 @@ export function TrackManager() {
       return
     }
 
-    setSelectedFile(file)
+    setSelectedAudioFile(file)
     if (!metadata.title) {
       const fileName = file.name.replace(/\.[^/.]+$/, '')
       setMetadata(prev => ({ ...prev, title: fileName }))
     }
   }
 
-  const uploadToR2 = async (file: File): Promise<string> => {
+  const handleCoverImageSelect = (files: FileList | null) => {
+    if (!files || files.length === 0) return
+
+    const file = files[0]
+    if (!file.type.startsWith('image/')) {
+      toast.error('Please upload an image file')
+      return
+    }
+
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error('Image too large (max 5MB)')
+      return
+    }
+
+    if (coverPreview) {
+      URL.revokeObjectURL(coverPreview)
+    }
+
+    const preview = URL.createObjectURL(file)
+    setSelectedCoverImage(file)
+    setCoverPreview(preview)
+  }
+
+  const removeCoverImage = () => {
+    if (coverPreview) {
+      URL.revokeObjectURL(coverPreview)
+    }
+    setSelectedCoverImage(null)
+    setCoverPreview(null)
+  }
+
+  const uploadToR2 = async (file: File, prefix: string): Promise<string> => {
     if (!credentials) throw new Error('Missing credentials')
 
-    const fileName = `tracks/${Date.now()}-${file.name.replace(/[^a-zA-Z0-9.-]/g, '_')}`
+    const cleanFileName = file.name.replace(/[^a-zA-Z0-9.-]/g, '_')
+    const fileName = `${prefix}/${Date.now()}-${cleanFileName}`
     const endpoint = `https://${credentials.r2AccountId}.r2.cloudflarestorage.com/${credentials.r2BucketName}/${fileName}`
 
     const authString = btoa(`${credentials.r2AccessKey}:${credentials.r2SecretKey}`)
@@ -164,7 +202,7 @@ export function TrackManager() {
   }
 
   const handleUpload = async () => {
-    if (!selectedFile) {
+    if (!selectedAudioFile) {
       toast.error('Select an audio file first')
       return
     }
@@ -184,17 +222,34 @@ export function TrackManager() {
     setUploadProgress(0)
 
     try {
+      setUploadStage('Uploading audio to R2...')
+      setUploadProgress(15)
+
+      const uploadPromises: Promise<string>[] = [
+        uploadToR2(selectedAudioFile, 'tracks')
+      ]
+
+      if (selectedCoverImage) {
+        uploadPromises.push(uploadToR2(selectedCoverImage, 'covers'))
+      }
+
       setUploadProgress(30)
-      const r2Url = await uploadToR2(selectedFile)
+      const uploadResults = await Promise.all(uploadPromises)
+      
+      const audioUrl = uploadResults[0]
+      const coverImageUrl = uploadResults.length > 1 ? uploadResults[1] : undefined
       
       setUploadProgress(60)
       setUploadStatus('syncing')
+      setUploadStage('Syncing to GitHub...')
 
       const trackData: UploadedTrack = {
         id: Date.now().toString(),
         title: metadata.title,
         artist: metadata.artist,
-        r2Url,
+        audioUrl,
+        coverImageUrl,
+        releaseDate: metadata.releaseDate,
         uploadedAt: Date.now()
       }
 
@@ -202,6 +257,7 @@ export function TrackManager() {
       
       setUploadProgress(100)
       setUploadStatus('success')
+      setUploadStage('Complete!')
 
       setUploadedTracks((currentTracks) => [trackData, ...(currentTracks || [])])
 
@@ -214,15 +270,22 @@ export function TrackManager() {
 
       toast.success(`${metadata.title} uploaded and synced!`)
       
-      setSelectedFile(null)
+      setSelectedAudioFile(null)
+      setSelectedCoverImage(null)
+      if (coverPreview) {
+        URL.revokeObjectURL(coverPreview)
+      }
+      setCoverPreview(null)
       setMetadata({ title: '', artist: 'PIKO', releaseDate: new Date().toISOString().split('T')[0] })
       setUploadProgress(0)
 
       setTimeout(() => {
         setUploadStatus('idle')
+        setUploadStage('')
       }, 3000)
     } catch (error) {
       setUploadStatus('error')
+      setUploadStage('Upload failed')
       toast.error(`Upload failed: ${error instanceof Error ? error.message : 'Unknown error'}`)
       setUploadProgress(0)
     } finally {
@@ -237,10 +300,10 @@ export function TrackManager() {
     }
 
     const demoTracks = [
-      { title: 'Midnight Heat', artist: 'PIKO', fileName: 'midnight-heat.mp3' },
-      { title: 'City Lights', artist: 'PIKO', fileName: 'city-lights.mp3' },
-      { title: 'Neon Dreams', artist: 'PIKO', fileName: 'neon-dreams.mp3' },
-      { title: 'Street Symphony', artist: 'PIKO', fileName: 'street-symphony.mp3' }
+      { title: 'Midnight Heat', artist: 'PIKO', fileName: 'midnight-heat.mp3', cover: 'midnight-heat-cover.jpg' },
+      { title: 'City Lights', artist: 'PIKO', fileName: 'city-lights.mp3', cover: 'city-lights-cover.jpg' },
+      { title: 'Neon Dreams', artist: 'PIKO', fileName: 'neon-dreams.mp3', cover: 'neon-dreams-cover.jpg' },
+      { title: 'Street Symphony', artist: 'PIKO', fileName: 'street-symphony.mp3', cover: 'street-symphony-cover.jpg' }
     ]
 
     const randomTrack = demoTracks[Math.floor(Math.random() * demoTracks.length)]
@@ -250,12 +313,15 @@ export function TrackManager() {
     setUploadProgress(0)
 
     try {
+      setUploadStage('Uploading audio to R2...')
       await new Promise(resolve => setTimeout(resolve, 800))
       setUploadProgress(30)
       
+      setUploadStage('Uploading cover image to R2...')
       await new Promise(resolve => setTimeout(resolve, 800))
       setUploadProgress(60)
       setUploadStatus('syncing')
+      setUploadStage('Syncing to GitHub...')
 
       await new Promise(resolve => setTimeout(resolve, 800))
       
@@ -263,12 +329,15 @@ export function TrackManager() {
         id: Date.now().toString(),
         title: randomTrack.title,
         artist: randomTrack.artist,
-        r2Url: `https://demo.r2.dev/tracks/${Date.now()}-${randomTrack.fileName}`,
+        audioUrl: `https://demo.r2.dev/tracks/${Date.now()}-${randomTrack.fileName}`,
+        coverImageUrl: `https://demo.r2.dev/covers/${Date.now()}-${randomTrack.cover}`,
+        releaseDate: new Date().toISOString().split('T')[0],
         uploadedAt: Date.now()
       }
 
       setUploadProgress(100)
       setUploadStatus('success')
+      setUploadStage('Complete!')
 
       setUploadedTracks((currentTracks) => [trackData, ...(currentTracks || [])])
 
@@ -285,9 +354,11 @@ export function TrackManager() {
 
       setTimeout(() => {
         setUploadStatus('idle')
+        setUploadStage('')
       }, 3000)
     } catch (error) {
       setUploadStatus('error')
+      setUploadStage('Demo upload failed')
       toast.error('Demo upload failed')
       setUploadProgress(0)
     } finally {
@@ -326,15 +397,15 @@ export function TrackManager() {
         <CardContent className="space-y-4">
           <div className="relative border-2 border-dashed border-border hover:border-primary/50 rounded transition-all p-8">
             <input
-              ref={fileInputRef}
+              ref={audioFileInputRef}
               type="file"
               accept="audio/*"
-              onChange={(e) => handleFileSelect(e.target.files)}
+              onChange={(e) => handleAudioFileSelect(e.target.files)}
               className="hidden"
               id="track-upload"
             />
 
-            {!selectedFile ? (
+            {!selectedAudioFile ? (
               <label
                 htmlFor="track-upload"
                 className="flex flex-col items-center justify-center cursor-pointer group"
@@ -355,18 +426,68 @@ export function TrackManager() {
                   <Music className="w-6 h-6 text-primary" />
                 </div>
                 <div className="flex-1">
-                  <p className="font-bold text-foreground">{selectedFile.name}</p>
+                  <p className="font-bold text-foreground">{selectedAudioFile.name}</p>
                   <p className="text-sm text-muted-foreground">
-                    {(selectedFile.size / (1024 * 1024)).toFixed(2)} MB
+                    {(selectedAudioFile.size / (1024 * 1024)).toFixed(2)} MB
                   </p>
                 </div>
                 <Button
                   variant="ghost"
                   size="sm"
-                  onClick={() => setSelectedFile(null)}
+                  onClick={() => setSelectedAudioFile(null)}
                   disabled={isUploading}
                 >
                   Change
+                </Button>
+              </div>
+            )}
+          </div>
+
+          <div className="relative border-2 border-dashed border-border hover:border-secondary/50 rounded transition-all p-6">
+            <input
+              ref={coverImageInputRef}
+              type="file"
+              accept="image/*"
+              onChange={(e) => handleCoverImageSelect(e.target.files)}
+              className="hidden"
+              id="cover-upload"
+            />
+
+            {!selectedCoverImage ? (
+              <label
+                htmlFor="cover-upload"
+                className="flex flex-col items-center justify-center cursor-pointer group"
+              >
+                <div className="w-12 h-12 rounded-full bg-muted flex items-center justify-center mb-3 group-hover:bg-secondary/20 group-hover:scale-110 transition-all">
+                  <ImageIcon className="w-6 h-6 text-muted-foreground group-hover:text-secondary transition-colors" />
+                </div>
+                <p className="text-sm font-black text-foreground mb-1 uppercase tracking-wide">
+                  Featured Cover Art (Optional)
+                </p>
+                <p className="text-xs text-muted-foreground">
+                  JPG, PNG, or WEBP • Max 5MB
+                </p>
+              </label>
+            ) : (
+              <div className="flex items-center gap-4">
+                {coverPreview && (
+                  <div className="w-16 h-16 rounded overflow-hidden border border-border">
+                    <img src={coverPreview} alt="Cover preview" className="w-full h-full object-cover" />
+                  </div>
+                )}
+                <div className="flex-1">
+                  <p className="font-bold text-foreground text-sm">{selectedCoverImage.name}</p>
+                  <p className="text-xs text-muted-foreground">
+                    {(selectedCoverImage.size / (1024 * 1024)).toFixed(2)} MB
+                  </p>
+                </div>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={removeCoverImage}
+                  disabled={isUploading}
+                >
+                  <X className="w-4 h-4" />
                 </Button>
               </div>
             )}
@@ -415,10 +536,7 @@ export function TrackManager() {
                   {uploadStatus === 'success' && <CheckCircle className="w-4 h-4 text-secondary" />}
                   {uploadStatus === 'error' && <AlertCircle className="w-4 h-4 text-destructive" />}
                   <span className="text-sm font-black uppercase">
-                    {uploadStatus === 'uploading' && 'Uploading to R2...'}
-                    {uploadStatus === 'syncing' && 'Syncing to GitHub...'}
-                    {uploadStatus === 'success' && 'Complete!'}
-                    {uploadStatus === 'error' && 'Upload Failed'}
+                    {uploadStage || 'Processing...'}
                   </span>
                 </div>
                 <span className="text-sm font-bold">{uploadProgress}%</span>
@@ -431,7 +549,7 @@ export function TrackManager() {
             onClick={handleUpload}
             className="w-full bg-accent hover:bg-accent/90 text-lg font-black uppercase neon-glow-orange"
             size="lg"
-            disabled={!selectedFile || !metadata.title.trim() || isUploading}
+            disabled={!selectedAudioFile || !metadata.title.trim() || isUploading}
           >
             <Upload className="w-5 h-5 mr-2" />
             {isUploading ? 'UPLOADING...' : 'UPLOAD & SYNC'}
@@ -486,13 +604,26 @@ export function TrackManager() {
                     <span>{new Date(track.uploadedAt).toLocaleDateString()}</span>
                     <span>•</span>
                     <a
-                      href={track.r2Url}
+                      href={track.audioUrl}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="flex items-center gap-1 hover:text-secondary transition-colors"
                     >
-                      R2 URL <ExternalLink className="w-3 h-3" />
+                      Audio <ExternalLink className="w-3 h-3" />
                     </a>
+                    {track.coverImageUrl && (
+                      <>
+                        <span>•</span>
+                        <a
+                          href={track.coverImageUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="flex items-center gap-1 hover:text-secondary transition-colors"
+                        >
+                          Cover <ExternalLink className="w-3 h-3" />
+                        </a>
+                      </>
+                    )}
                   </div>
                 </div>
               ))}
