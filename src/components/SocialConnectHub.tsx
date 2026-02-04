@@ -130,19 +130,19 @@ export function SocialConnectHub() {
         
         try {
           setIsConnecting(platform)
-          const credentials = await AuthService.handleCallback(platform, code, state)
+          const result = await AuthService.handleCallback(code, state)
           
           setConnections(prev => ({
             ...prev,
-            [platform]: {
-              platform,
+            [result.platform]: {
+              platform: result.platform,
               connected: true,
-              credentials,
+              credentials: result.credentials,
               lastConnected: Date.now()
             }
           }))
 
-          toast.success(`${platform.toUpperCase()} connected successfully!`)
+          toast.success(`${result.platform.toUpperCase()} connected successfully!`)
         } catch (error) {
           toast.error(`Connection failed: ${error instanceof Error ? error.message : 'Unknown error'}`)
           
