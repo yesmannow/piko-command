@@ -19,6 +19,12 @@ interface TrackMetadata {
   releaseDate?: string
 }
 
+/**
+ * Convert a File object to base64 string
+ * @param file - File to convert
+ * @returns Base64 encoded string without data URL prefix
+ * @throws Error if file cannot be read
+ */
 async function fileToBase64(file: File): Promise<string> {
   return new Promise((resolve, reject) => {
     const reader = new FileReader()
@@ -35,6 +41,18 @@ async function fileToBase64(file: File): Promise<string> {
   })
 }
 
+/**
+ * Upload audio and cover art files to GitHub repository
+ * 
+ * @param audioFile - Audio track file (mp3, wav, etc.)
+ * @param coverImageFile - Optional cover art image file
+ * @param metadata - Track metadata (title, artist, vibe, releaseDate)
+ * @param credentials - GitHub authentication credentials
+ * @param audioProgressCallback - Optional callback for audio upload progress (0-100)
+ * @param coverProgressCallback - Optional callback for cover upload progress (0-100)
+ * @returns Object containing URLs for uploaded assets
+ * @throws Error if GitHub token is invalid or upload fails
+ */
 export async function uploadAssetsToGitHub(
   audioFile: File,
   coverImageFile: File | null,
@@ -126,6 +144,16 @@ export async function uploadAssetsToGitHub(
   }
 }
 
+/**
+ * Sync track metadata to piko-tracks.json in GitHub repository
+ * Appends new track to beginning of tracks array
+ * 
+ * @param metadata - Track metadata to sync
+ * @param audioUrl - Relative URL to audio file
+ * @param coverImageUrl - Optional relative URL to cover image
+ * @param credentials - GitHub authentication credentials
+ * @throws Error if metadata sync fails or file cannot be updated
+ */
 export async function syncTrackMetadata(
   metadata: TrackMetadata,
   audioUrl: string,
@@ -205,6 +233,12 @@ export async function syncTrackMetadata(
   }
 }
 
+/**
+ * Verify GitHub repository access with provided credentials
+ * 
+ * @param credentials - GitHub authentication credentials to test
+ * @returns true if repository is accessible, false otherwise
+ */
 export async function checkGitHubConnection(credentials: GitHubCredentials): Promise<boolean> {
   try {
     const octokit = new Octokit({

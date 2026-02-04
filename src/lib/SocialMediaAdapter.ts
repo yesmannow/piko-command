@@ -1,4 +1,5 @@
 import { logger } from './logger';
+import { sanitizeForClipboard, sanitizeCaption, sanitizeUrl } from './sanitize';
 
 type Platform = 'instagram' | 'tiktok' | 'twitter' | 'facebook' | 'linkedin';
 
@@ -56,6 +57,12 @@ const PLATFORM_CONFIGS: Record<Platform, PlatformConfig> = {
 };
 
 export const SocialMediaAdapter = {
+  /**
+   * Share content to a single social media platform
+   * @param platform - Target platform (instagram, tiktok, twitter, facebook, linkedin)
+   * @param payload - Content to share including caption and optional link
+   * @returns Window object of opened popup, or null if failed
+   */
   async share(platform: Platform, payload: SharePayload): Promise<Window | null> {
     const config = PLATFORM_CONFIGS[platform];
     
@@ -64,8 +71,12 @@ export const SocialMediaAdapter = {
       return null;
     }
 
-    const encodedCaption = encodeURIComponent(payload.caption);
-    const encodedUrl = encodeURIComponent(payload.link || '');
+    // Sanitize inputs for security
+    const sanitizedCaption = sanitizeCaption(payload.caption);
+    const sanitizedLink = payload.link ? sanitizeUrl(payload.link) : '';
+
+    const encodedCaption = encodeURIComponent(sanitizedCaption);
+    const encodedUrl = encodeURIComponent(sanitizedLink);
 
     // Build platform-specific URL
     let shareUrl = config.url;
@@ -87,10 +98,11 @@ export const SocialMediaAdapter = {
     const left = window.screenX + (window.outerWidth - config.width) / 2;
     const top = window.screenY + (window.outerHeight - config.height) / 2;
     
-    // Copy to clipboard for platforms that require it
+    // Copy to clipboard for platforms that require it (Instagram, TikTok)
     if (config.requiresClipboard) {
       try {
-        await navigator.clipboard.writeText(payload.caption);
+        const clipboardText = sanitizeForClipboard(sanitizedCaption);
+        await navigator.clipboard.writeText(clipboardText);
         logger.social(platform, 'clipboard_copy', true);
       } catch (err) {
         logger.social(platform, 'clipboard_copy', false);
@@ -108,6 +120,11 @@ export const SocialMediaAdapter = {
     return popup;
   },
 
+  /**
+   * Share content to multiple platforms sequentially
+   * @param platforms - Array of platform identifiers to share to
+   * @param payload - Content to share
+   */
   async blastToAll(platforms: Platform[], payload: SharePayload): Promise<void> {
     logger.info(`Blasting to ${platforms.length} platforms`, {
       component: 'SocialMediaAdapter',
@@ -123,6 +140,11 @@ export const SocialMediaAdapter = {
     logger.info('Blast complete');
   },
 
+  /**
+   * Get configuration for a specific platform
+   * @param platform - Platform identifier
+   * @returns Platform configuration object
+   */
   getPlatformConfig(platform: Platform): PlatformConfig {
     return PLATFORM_CONFIGS[platform];
   }

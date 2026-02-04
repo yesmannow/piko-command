@@ -25,6 +25,14 @@ interface GitHubCredentials {
   githubOwner: string
 }
 
+/**
+ * Update tracks.json file in GitHub repository with new track data
+ * Prepends new track to the beginning of the tracks array
+ * 
+ * @param newTrack - Track data to add to tracks.json
+ * @param credentials - GitHub authentication credentials
+ * @throws Error if file cannot be fetched or updated
+ */
 export async function updateTracksJSON(
   newTrack: TrackData,
   credentials: GitHubCredentials
