@@ -104,7 +104,7 @@ export const SocialMediaAdapter = {
         const clipboardText = sanitizeForClipboard(sanitizedCaption);
         await navigator.clipboard.writeText(clipboardText);
         logger.social(platform, 'clipboard_copy', true);
-      } catch (err) {
+      } catch {
         logger.social(platform, 'clipboard_copy', false);
         // Don't block the share flow if clipboard fails
       }

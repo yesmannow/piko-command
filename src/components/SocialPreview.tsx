@@ -12,7 +12,7 @@ interface SocialPreviewProps {
   hashtags?: string[]
 }
 
-export function SocialPreview({ caption, smartLink, mediaUrl, hashtags = [] }: SocialPreviewProps) {
+export function SocialPreview({ caption, smartLink, mediaUrl }: SocialPreviewProps) {
   const [platform, setPlatform] = useState<'x' | 'instagram'>('x')
   
   const fullCaption = smartLink 

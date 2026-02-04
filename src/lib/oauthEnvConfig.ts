@@ -8,7 +8,7 @@ export const OAuthEnvConfig = {
   linkedin: { clientId: '', clientSecret: '' }
 }
 
-export function hasEnvConfig(platform: string): boolean {
+export function hasEnvConfig(): boolean {
   return false
 }
 

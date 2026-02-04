@@ -3,7 +3,7 @@ import { useKV } from '@github/spark/hooks'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import {
   Dialog,
   DialogContent,
@@ -21,7 +21,6 @@ import {
   Image as ImageIcon,
   ExternalLink,
   Zap,
-  Music,
   Copy,
   Calendar as CalendarIcon,
   Share2,
@@ -58,7 +57,7 @@ interface HypeEvent {
   thumbnailUrl?: string
 }
 
-const PLATFORM_ICONS: Record<string, any> = {
+const PLATFORM_ICONS: Record<string, React.ElementType> = {
   instagram: ImageIcon,
   tiktok: Video,
   twitter: Hash,
@@ -201,7 +200,7 @@ export function HypeCalendar({ onReUp }: HypeCalendarProps) {
     toast.success('Caption copied to clipboard!')
   }
 
-  const renderDayCell = (date: Date | null, isWeekView: boolean = false, index: number = 0) => {
+  const renderDayCell = (date: Date | null, index: number = 0) => {
     if (!date) {
       return <div key={`empty-${index}`} className="aspect-square" />
     }
@@ -317,7 +316,7 @@ export function HypeCalendar({ onReUp }: HypeCalendarProps) {
           ))}
         </div>
         <div className="grid grid-cols-7 gap-2">
-          {days.map((day, idx) => renderDayCell(day))}
+          {days.map((day) => renderDayCell(day))}
         </div>
       </div>
     )
@@ -334,7 +333,7 @@ export function HypeCalendar({ onReUp }: HypeCalendarProps) {
               <div className="font-black text-xs text-zinc-500 uppercase tracking-wider mb-2">
                 {day.toLocaleDateString('en-US', { weekday: 'short' }).toUpperCase()}
               </div>
-              {renderDayCell(day, true)}
+              {renderDayCell(day)}
             </div>
           ))}
         </div>
@@ -467,7 +466,7 @@ export function HypeCalendar({ onReUp }: HypeCalendarProps) {
         </CardHeader>
         <CardContent className="p-6 space-y-6">
           <div className="flex items-center justify-between">
-            <Tabs value={viewMode} onValueChange={(v) => setViewMode(v as any)} className="w-auto">
+            <Tabs value={viewMode} onValueChange={(v) => setViewMode(v as 'day' | 'week' | 'month')} className="w-auto">
               <TabsList className="grid grid-cols-3 bg-zinc-900/50 border-2 border-zinc-800">
                 <TabsTrigger 
                   value="day" 

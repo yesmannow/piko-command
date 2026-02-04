@@ -2,19 +2,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { AlertCircle } from 'lucide-react'
 
-interface PostHistory {
-  id: string
-  caption: string
-  platforms: string[]
-  timestamp: number
-  linkInBio: boolean
-}
-
-interface TimelineCalendarProps {
-  posts: PostHistory[]
-}
-
-export function TimelineCalendar({ posts }: TimelineCalendarProps) {
+export function TimelineCalendar() {
   return (
     <Card className="border-2 border-zinc-800 bg-zinc-950/90">
       <CardHeader>
