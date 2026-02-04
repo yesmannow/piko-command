@@ -71,6 +71,38 @@ npm run build
 npm run lint
 ```
 
+## 🔒 Security & Code Quality
+
+PIKO COMMAND implements industry-standard security practices:
+
+- **Input Sanitization** - All user inputs are sanitized to prevent XSS and injection attacks
+- **Type Safety** - Full TypeScript coverage with strict type checking
+- **Secure Logging** - Centralized logger with environment-aware output
+- **API Key Validation** - Format validation for GitHub and YouTube API keys
+- **Error Handling** - Comprehensive error handling with detailed context logging
+
+## 🏗️ Architecture
+
+### Core Services
+- **Logger Service** (`src/lib/logger.ts`) - Centralized logging with component tracking
+- **Sanitization** (`src/lib/sanitize.ts`) - Input validation and sanitization utilities
+- **Social Media Adapter** (`src/lib/SocialMediaAdapter.ts`) - Multi-platform sharing engine
+- **GitHub Uploader** (`src/lib/githubAssetUploader.ts`) - Direct repository asset management
+
+### Key Features Status
+✅ **Fully Implemented:**
+- Multi-platform social media distribution
+- GitHub-native asset storage
+- AI caption generation (Ghostwriter)
+- Visual timeline calendar
+- Platform preview mockups
+- Prompt library
+- YouTube vault integration
+
+⚠️ **Browser Intent Based:**
+- Social media posting uses browser intents + clipboard for maximum reliability
+- No OAuth complexity - simpler and more maintainable
+
 ## 🎨 Design Philosophy
 
 Brutalist technical aesthetic with cyberpunk neon accents and graffiti culture DNA. Command-line inspired labels, monospace fonts for data entry, aggressive neon glows on key actions. Feels like a professional production studio control panel built by street artists.

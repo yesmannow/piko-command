@@ -201,9 +201,9 @@ export function HypeCalendar({ onReUp }: HypeCalendarProps) {
     toast.success('Caption copied to clipboard!')
   }
 
-  const renderDayCell = (date: Date | null, isWeekView: boolean = false) => {
+  const renderDayCell = (date: Date | null, isWeekView: boolean = false, index: number = 0) => {
     if (!date) {
-      return <div key={Math.random()} className="aspect-square" />
+      return <div key={`empty-${index}`} className="aspect-square" />
     }
 
     const dateKey = date.toISOString().split('T')[0]
