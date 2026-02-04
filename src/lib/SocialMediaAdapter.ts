@@ -1,5 +1,5 @@
 import type { PlatformConnection } from './auth'
-import { OAuthManager } from './auth'
+import { AuthService } from './auth'
 
 type Platform = 'instagram' | 'tiktok' | 'twitter' | 'facebook' | 'linkedin';
 

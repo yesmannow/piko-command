@@ -24,7 +24,7 @@ import {
   ExternalLink,
   Settings
 } from 'lucide-react'
-import { OAuthManager, type AuthConfig, type PlatformConnection } from '@/lib/auth'
+import { AuthService, type AuthConfig, type PlatformConnection } from '@/lib/auth'
 import { OAuthEnvConfig, hasEnvConfig } from '@/lib/oauthEnvConfig'
 
 interface SocialConnections {
@@ -130,7 +130,7 @@ export function SocialConnectHub() {
         
         try {
           setIsConnecting(platform)
-          const credentials = await OAuthManager.handleCallback(code, state, authConfig || {})
+          const credentials = await AuthService.handleCallback(platform, code, state)
           
           setConnections(prev => ({
             ...prev,
@@ -175,7 +175,8 @@ export function SocialConnectHub() {
 
     try {
       setIsConnecting(platformId)
-      await OAuthManager.initiateOAuth(platformId as keyof AuthConfig, config)
+      AuthService.updateConfig(config)
+      AuthService.initiateOAuth(platformId as keyof AuthConfig)
       toast.info(`Opening ${platformId} authorization window...`)
     } catch (error) {
       toast.error(`Failed to initiate OAuth: ${error instanceof Error ? error.message : 'Unknown error'}`)
