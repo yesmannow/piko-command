@@ -42,6 +42,7 @@ import { SocialPreview } from '@/components/SocialPreview'
 import { PromptLibrary } from '@/components/PromptLibrary'
 import { HypeCalendar } from '@/components/HypeCalendar'
 import { GhostwriterModal } from '@/components/GhostwriterModal'
+import { OAuthCallback } from '@/components/OAuthCallback'
 import { uploadAssetsToGitHub, syncTrackMetadata } from '@/lib/githubAssetUploader'
 import { SocialMediaAdapter, type Platform } from '@/lib/SocialMediaAdapter'
 
@@ -410,6 +411,12 @@ function App() {
 
   const characterCount = caption.length
   const characterLimit = 2200
+
+  const isOAuthCallback = window.location.pathname === '/oauth/callback'
+
+  if (isOAuthCallback) {
+    return <OAuthCallback />
+  }
 
   return (
     <div className="min-h-screen bg-zinc-950 text-zinc-100">

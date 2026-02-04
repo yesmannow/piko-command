@@ -1,3 +1,6 @@
+import type { PlatformConnection } from './auth'
+import { OAuthManager } from './auth'
+
 type Platform = 'instagram' | 'tiktok' | 'twitter' | 'facebook' | 'linkedin';
 
 interface SharePayload {
@@ -14,8 +17,133 @@ interface PlatformConfig {
   displayName: string;
 }
 
+interface SocialConnections {
+  twitter?: PlatformConnection
+  instagram?: PlatformConnection
+  tiktok?: PlatformConnection
+  facebook?: PlatformConnection
+  linkedin?: PlatformConnection
+}
+
 export const SocialMediaAdapter = {
+  async getConnections(): Promise<SocialConnections> {
+    try {
+      const connections = await window.spark.kv.get<SocialConnections>('social-connections')
+      return connections || {}
+    } catch {
+      return {}
+    }
+  },
+
+  async postViaAPI(platform: Platform, payload: SharePayload, connection: PlatformConnection): Promise<boolean> {
+    if (!connection.credentials) {
+      return false
+    }
+
+    try {
+      switch (platform) {
+        case 'twitter':
+          return await this.postToTwitter(payload, connection)
+        case 'instagram':
+          return await this.postToInstagram(payload, connection)
+        case 'tiktok':
+          return await this.postToTikTok(payload, connection)
+        case 'facebook':
+          return await this.postToFacebook(payload, connection)
+        case 'linkedin':
+          return await this.postToLinkedIn(payload, connection)
+        default:
+          return false
+      }
+    } catch (error) {
+      console.error(`API post to ${platform} failed:`, error)
+      return false
+    }
+  },
+
+  async postToTwitter(payload: SharePayload, connection: PlatformConnection): Promise<boolean> {
+    const response = await fetch('https://api.twitter.com/2/tweets', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${connection.credentials?.accessToken}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        text: payload.caption
+      })
+    })
+
+    return response.ok
+  },
+
+  async postToInstagram(payload: SharePayload, connection: PlatformConnection): Promise<boolean> {
+    console.log('Instagram API posting not yet implemented - using fallback')
+    return false
+  },
+
+  async postToTikTok(payload: SharePayload, connection: PlatformConnection): Promise<boolean> {
+    console.log('TikTok API posting not yet implemented - using fallback')
+    return false
+  },
+
+  async postToFacebook(payload: SharePayload, connection: PlatformConnection): Promise<boolean> {
+    const response = await fetch(`https://graph.facebook.com/v18.0/me/feed`, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${connection.credentials?.accessToken}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        message: payload.caption,
+        link: payload.link
+      })
+    })
+
+    return response.ok
+  },
+
+  async postToLinkedIn(payload: SharePayload, connection: PlatformConnection): Promise<boolean> {
+    const response = await fetch('https://api.linkedin.com/v2/ugcPosts', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${connection.credentials?.accessToken}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        author: `urn:li:person:${connection.credentials?.userId}`,
+        lifecycleState: 'PUBLISHED',
+        specificContent: {
+          'com.linkedin.ugc.ShareContent': {
+            shareCommentary: {
+              text: payload.caption
+            },
+            shareMediaCategory: 'NONE'
+          }
+        },
+        visibility: {
+          'com.linkedin.ugc.MemberNetworkVisibility': 'PUBLIC'
+        }
+      })
+    })
+
+    return response.ok
+  },
+
   async share(platform: Platform, payload: SharePayload): Promise<Window | null> {
+    const connections = await this.getConnections()
+    const connection = connections[platform]
+
+    if (connection?.connected && connection.credentials) {
+      const apiSuccess = await this.postViaAPI(platform, payload, connection)
+      
+      if (apiSuccess) {
+        console.log(`Successfully posted to ${platform} via API`)
+        return null
+      }
+      
+      console.log(`API post failed for ${platform}, falling back to browser intent`)
+    }
+
     const encodedCaption = encodeURIComponent(payload.caption);
     const encodedUrl = encodeURIComponent(payload.link || '');
 

@@ -74,12 +74,12 @@ PIKO COMMAND is a brutalist, technically sophisticated social media distribution
 - **Progression**: App loads → YouTube API fetches latest 10 videos → Thumbnails, titles, view counts displayed → User clicks "Quick Share" → Video URL and title injected into caption composer → Ready for distribution
 - **Success criteria**: Real videos fetched with accurate metadata, quick-share pre-fills composer, API key configurable and persistent, graceful fallback to mock data when unconfigured
 
-### 10. Integration Hub (Social Media Credential Management)
-- **Functionality**: Secure credential storage and connection management for Twitter, Instagram, and TikTok API integrations with connection status tracking
-- **Purpose**: Enable direct API posting to social platforms when credentials are configured, with fallback to browser intents
+### 10. OAuth Integration Hub (Professional Social Connections)
+- **Functionality**: Industry-standard OAuth 2.0 connection flow for Twitter, Instagram, TikTok, Facebook, and LinkedIn with secure token management and smart API-first posting
+- **Purpose**: Replace manual API configurations with professional "Connect with X" experiences, enabling direct API posting when connected with automatic fallback to browser intents
 - **Trigger**: User navigates to "THE VAULT" tab → "Social Integrations" sub-tab
-- **Progression**: Tab opened → Platform connection cards display (Twitter, Instagram, TikTok) → Each shows CONNECTED/DISCONNECTED status with live indicator → User clicks platform card → Credential input fields appear (API keys, tokens, secrets) → "TEST & CONNECT" validates credentials → If successful, platform marked CONNECTED with green badge → Credentials encrypted and stored in useKV → "SAVE ALL CREDENTIALS" persists configuration → Future posts use API when connected, browser intents when not
-- **Success criteria**: Credentials stored securely in browser, connection testing works per platform, status badges accurate, security warnings displayed, fields support show/hide for secrets, demo mode available for testing UI
+- **Progression**: Tab opened → Visual connection cards display for all platforms (● CONNECTED green or ○ DISCONNECTED gray) → User selects platform tab → Enters OAuth credentials (Client ID/Secret) with masked inputs → Clicks "CONNECT [PLATFORM]" → OAuth authorization window opens centered on screen → User authorizes PIKO COMMAND → Platform redirects to /oauth/callback → State parameter validated → OAuth code exchanged for access token → Credentials stored encrypted in useKV → Connection status updates to ● CONNECTED with green badge → Future "BLAST ALL" operations check for OAuth connection → If connected: attempts API post first → If API succeeds: silent success → If API fails OR not connected: falls back to browser intent method → User can disconnect any platform to revoke access
+- **Success criteria**: OAuth flow completes for all platforms, state validation prevents CSRF, tokens refresh automatically before expiration, API posting works when connected, fallback seamless when disconnected, connection status accurate in real-time, credentials masked in UI, "Check Connection" validates tokens, glassmorphism effects match app aesthetic, setup instructions clear and actionable
 
 ### 11. GitHub Vault Settings
 - **Functionality**: Secure storage and validation of GitHub Personal Access Token
