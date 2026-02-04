@@ -1,4 +1,5 @@
 import { Octokit } from 'octokit'
+import { logger } from './logger'
 
 export interface TrackData {
   id: string
@@ -35,8 +36,7 @@ export async function updateTracksJSON(
 
     const tracksPath = 'public/data/tracks.json'
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    let existingContent: any[] = []
+    let existingContent: TrackData[] = []
     let sha: string | undefined
 
     try {
@@ -46,18 +46,19 @@ export async function updateTracksJSON(
         path: tracksPath,
       })
 
-      if ('content' in fileData) {
+      if ('content' in fileData && fileData.content) {
         const content = atob(fileData.content.replace(/\s/g, ''))
-        existingContent = JSON.parse(content)
+        existingContent = JSON.parse(content) as TrackData[]
         sha = fileData.sha
       }
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    } catch (error: any) {
-      if (error.status === 404) {
+    } catch (error: unknown) {
+      if (error && typeof error === 'object' && 'status' in error && error.status === 404) {
         existingContent = []
+        logger.info('tracks.json not found, will create new file')
       } else {
-        console.error('GitHub fetch error:', error)
-        throw new Error(`Failed to fetch existing tracks: ${error.message || 'Unknown error'}`)
+        const errorMessage = error instanceof Error ? error.message : 'Unknown error'
+        logger.github('fetch_tracks', false, errorMessage)
+        throw new Error(`Failed to fetch existing tracks: ${errorMessage}`)
       }
     }
 
@@ -74,8 +75,10 @@ export async function updateTracksJSON(
       content: encodedContent,
       sha,
     })
+    
+    logger.github('update_tracks_json', true, `Added ${newTrack.title}`)
   } catch (error) {
-    console.error('GitHub sync error:', error)
+    logger.github('update_tracks_json', false, error instanceof Error ? error.message : 'Unknown error')
     if (error instanceof Error) {
       throw error
     }

@@ -9,6 +9,7 @@ import { Label } from '@/components/ui/label'
 import { toast } from 'sonner'
 import { Youtube, Share2, Play, Loader2, RefreshCw, Settings } from 'lucide-react'
 import { useKV } from '@github/spark/hooks'
+import { logger } from '@/lib/logger'
 
 interface YouTubeVideo {
   id: string
@@ -70,7 +71,7 @@ export function YouTubeVault({ onQuickShare }: YouTubeVaultProps) {
         throw new Error(errorData.error?.message || 'Failed to fetch videos')
       }
       
-      const searchData = await searchResponse.json()
+      const searchData = await searchResponse.json() as YouTubeSearchResponse
       
       if (!searchData.items || searchData.items.length === 0) {
         toast.error('No videos found on this channel')
@@ -79,23 +80,20 @@ export function YouTubeVault({ onQuickShare }: YouTubeVaultProps) {
         return
       }
 
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const videoIds = searchData.items.map((item: any) => item.id.videoId).join(',')
+      const videoIds = searchData.items.map((item) => item.id.videoId).join(',')
       
       const statsUrl = `https://www.googleapis.com/youtube/v3/videos?key=${apiKey}&id=${videoIds}&part=statistics`
       const statsResponse = await fetch(statsUrl)
-      const statsData = await statsResponse.json()
+      const statsData = await statsResponse.json() as YouTubeVideosResponse
 
       const statsMap = new Map<string, string>(
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        (statsData.items as any[] || []).map((item: any) => [
+        (statsData.items || []).map((item) => [
           item.id,
           item.statistics?.viewCount || '0'
         ])
       )
 
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const fetchedVideos: YouTubeVideo[] = searchData.items.map((item: any) => {
+      const fetchedVideos: YouTubeVideo[] = searchData.items.map((item) => {
         const viewCountStr = statsMap.get(item.id.videoId) || '0'
         return {
           id: item.id.videoId,
@@ -109,9 +107,11 @@ export function YouTubeVault({ onQuickShare }: YouTubeVaultProps) {
 
       setVideos(fetchedVideos)
       toast.success(`Loaded ${fetchedVideos.length} latest videos!`)
+      logger.info(`YouTube API: Loaded ${fetchedVideos.length} videos`)
     } catch (error) {
-      console.error('YouTube API Error:', error)
-      toast.error(error instanceof Error ? error.message : 'Failed to load videos')
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error'
+      logger.error('YouTube API failed', error, { component: 'YouTubeVault' })
+      toast.error(`Failed to load videos: ${errorMessage}`)
       loadMockVideos()
     } finally {
       setLoading(false)

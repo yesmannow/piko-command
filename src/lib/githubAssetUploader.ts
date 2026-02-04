@@ -1,4 +1,5 @@
 import { Octokit } from 'octokit'
+import { logger } from './logger'
 
 interface GitHubCredentials {
   githubToken: string
@@ -117,7 +118,7 @@ export async function uploadAssetsToGitHub(
       coverImageUrl,
     }
   } catch (error) {
-    console.error('GitHub asset upload error:', error)
+    logger.github('asset_upload', false, error instanceof Error ? error.message : 'Unknown error')
     if (error instanceof Error) {
       throw new Error(`Upload failed: ${error.message}`)
     }
@@ -138,8 +139,17 @@ export async function syncTrackMetadata(
 
     const TRACKS_JSON_PATH = 'src/data/piko-tracks.json'
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    let existingTracks: any[] = []
+    interface Track {
+      id: string;
+      title: string;
+      artist: string;
+      vibe: string;
+      audioUrl: string;
+      coverImageUrl?: string;
+      releaseDate: string;
+    }
+
+    let existingTracks: Track[] = []
     let sha: string | undefined
 
     try {
@@ -149,19 +159,20 @@ export async function syncTrackMetadata(
         path: TRACKS_JSON_PATH,
       })
 
-      if ('content' in fileData) {
+      if ('content' in fileData && fileData.content) {
         sha = fileData.sha
         const content = Buffer.from(fileData.content, 'base64').toString('utf-8')
-        existingTracks = JSON.parse(content)
+        existingTracks = JSON.parse(content) as Track[]
       }
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    } catch (error: any) {
-      if (error.status !== 404) {
+    } catch (error: unknown) {
+      if (error && typeof error === 'object' && 'status' in error && error.status !== 404) {
         throw error
       }
+      // File doesn't exist yet, that's ok
+      logger.info('piko-tracks.json not found, will create new file')
     }
 
-    const newTrack = {
+    const newTrack: Track = {
       id: `track-${Date.now()}`,
       title: metadata.title,
       artist: metadata.artist,
@@ -183,8 +194,10 @@ export async function syncTrackMetadata(
       content: encodedContent,
       sha: sha,
     })
+    
+    logger.github('metadata_sync', true, `Synced ${metadata.title}`)
   } catch (error) {
-    console.error('GitHub metadata sync error:', error)
+    logger.github('metadata_sync', false, error instanceof Error ? error.message : 'Unknown error')
     if (error instanceof Error) {
       throw new Error(`Metadata sync failed: ${error.message}`)
     }
@@ -203,9 +216,10 @@ export async function checkGitHubConnection(credentials: GitHubCredentials): Pro
       repo: credentials.githubRepo,
     })
 
+    logger.github('connection_check', true, 'Repository accessible')
     return true
   } catch (error) {
-    console.error('GitHub connection check failed:', error)
+    logger.github('connection_check', false, error instanceof Error ? error.message : 'Unknown error')
     return false
   }
 }

@@ -12,6 +12,7 @@ import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { toast } from 'sonner'
 import { Loader2, Sparkles, Copy, Zap, Music, Hash } from 'lucide-react'
+import { logger } from '@/lib/logger'
 
 interface CaptionVariant {
   hype: string
@@ -58,7 +59,7 @@ Generate 3 variations in JSON format:
 3. "viral": Ultra-short curiosity-gap hook (under 100 chars)
 
 Return ONLY valid JSON with keys: hype, promo, viral`
-      const prompt = window.spark.llmPrompt([promptText] as any, ...[])
+      const prompt = window.spark.llmPrompt([promptText])
 
       const result = await window.spark.llm(prompt, 'gpt-4o-mini', true)
       const parsed = JSON.parse(result)
@@ -69,9 +70,11 @@ Return ONLY valid JSON with keys: hype, promo, viral`
         viral: parsed.viral || ''
       })
       toast.success('3 caption styles generated!')
+      logger.ai('Tone shift generation', true)
     } catch (error) {
-      toast.error('AI generation failed. Try again!')
-      console.error(error)
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error'
+      toast.error(`AI generation failed: ${errorMessage}`)
+      logger.ai('Tone shift generation', false, errorMessage)
     } finally {
       setIsGenerating(false)
     }
@@ -97,14 +100,16 @@ REQUIREMENTS:
 - Make it standalone without needing song context
 
 Return ONLY the formatted hook caption, no explanation.`
-      const prompt = window.spark.llmPrompt([promptText] as any, ...[])
+      const prompt = window.spark.llmPrompt([promptText])
 
       const hook = await window.spark.llm(prompt, 'gpt-4o-mini', false)
       setExtractedHook(hook.trim())
       toast.success('Hook extracted!')
+      logger.ai('Lyric hook extraction', true)
     } catch (error) {
-      toast.error('Extraction failed!')
-      console.error(error)
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error'
+      toast.error(`Extraction failed: ${errorMessage}`)
+      logger.ai('Lyric hook extraction', false, errorMessage)
     } finally {
       setIsGenerating(false)
     }
@@ -130,15 +135,17 @@ TASK:
 - Return as JSON array of hashtag strings
 
 Return format: {"hashtags": ["#Tag1", "#Tag2", ...]}`
-      const prompt = window.spark.llmPrompt([promptText] as any, ...[])
+      const prompt = window.spark.llmPrompt([promptText])
 
       const result = await window.spark.llm(prompt, 'gpt-4o-mini', true)
       const parsed = JSON.parse(result)
       setSuggestedHashtags(parsed.hashtags || [])
       toast.success('Smart hashtags generated!')
+      logger.ai('Hashtag generation', true)
     } catch (error) {
-      toast.error('Hashtag generation failed!')
-      console.error(error)
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error'
+      toast.error(`Hashtag generation failed: ${errorMessage}`)
+      logger.ai('Hashtag generation', false, errorMessage)
     } finally {
       setIsGenerating(false)
     }

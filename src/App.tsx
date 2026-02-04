@@ -13,6 +13,7 @@ import { Alert, AlertDescription } from '@/components/ui/alert'
 import { toast } from 'sonner'
 import confetti from 'canvas-confetti'
 import { motion, AnimatePresence } from 'framer-motion'
+import { logger } from '@/lib/logger'
 import {
   Zap,
   Sparkles,
@@ -172,9 +173,11 @@ function App() {
       const response = await window.spark.llm(fullPrompt, 'gpt-4o-mini', false)
       setCaption(response)
       toast.success('Caption generated from template!')
+      logger.ai('Template generation', true)
     } catch (error) {
-      toast.error('AI generation failed. Try again!')
-      console.error(error)
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error'
+      toast.error(`AI generation failed: ${errorMessage}`)
+      logger.ai('Template generation', false, errorMessage)
     }
   }
 
@@ -382,7 +385,7 @@ function App() {
         setUploadStage('')
       }, 3000)
     } catch (error) {
-      console.error('Upload error details:', error)
+      logger.github('track_upload', false, error instanceof Error ? error.message : 'Unknown error')
       setUploadStatus('error')
       
       let errorMessage = 'Unknown error'
