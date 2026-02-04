@@ -8,7 +8,7 @@ import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { toast } from 'sonner'
-import { Github, Eye, EyeOff, Save, CheckCircle, AlertCircle, ChevronDown, Info, Loader2, Link2, Settings as SettingsIcon } from 'lucide-react'
+import { Github, Eye, EyeOff, Save, CheckCircle, AlertCircle, ChevronDown, Info, Loader2, Link2 } from 'lucide-react'
 import { checkGitHubConnection } from '@/lib/githubAssetUploader'
 import { SocialConnectHub } from '@/components/SocialConnectHub'
 
