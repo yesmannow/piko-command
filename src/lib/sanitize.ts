@@ -14,6 +14,7 @@ export function sanitizeForClipboard(text: string): string {
   if (!text) return '';
   
   // Remove null bytes and other control characters except newlines and tabs
+  // eslint-disable-next-line no-control-regex
   let sanitized = text.replace(/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/g, '');
   
   // Trim excessive whitespace
@@ -83,6 +84,7 @@ export function sanitizeCaption(caption: string): string {
   sanitized = sanitized.replace(/vbscript:/gi, '');
   
   // Layer 4: Remove control characters (except whitespace)
+  // eslint-disable-next-line no-control-regex
   sanitized = sanitized.replace(/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/g, '');
   
   // Layer 5: Normalize whitespace

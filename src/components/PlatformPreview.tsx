@@ -115,7 +115,7 @@ export function PlatformPreview({ caption, selectedPlatforms }: PlatformPreviewP
                     </div>
                   </div>
 
-                  <div className="aspect-9/16 max-h-[500px] bg-zinc-900 flex items-center justify-center relative">
+                  <div className="aspect-[9/16] max-h-[500px] bg-zinc-900 flex items-center justify-center relative">
                     <div className="absolute inset-0 bg-gradient-to-br from-pink-500/10 via-transparent to-yellow-500/10" />
                     <div className="text-center text-zinc-700 relative z-10">
                       <InstagramLogo className="w-16 h-16 mx-auto mb-2" weight="thin" />
@@ -169,7 +169,7 @@ export function PlatformPreview({ caption, selectedPlatforms }: PlatformPreviewP
                     </div>
                   </div>
 
-                  <div className="aspect-9/16 max-h-[500px] bg-zinc-900 flex items-center justify-center relative">
+                  <div className="aspect-[9/16] max-h-[500px] bg-zinc-900 flex items-center justify-center relative">
                     <div className="absolute inset-0 bg-gradient-to-br from-cyan-500/10 via-transparent to-pink-500/10" />
                     <div className="text-center text-zinc-700 relative z-10">
                       <TiktokLogo className="w-16 h-16 mx-auto mb-2" weight="thin" />
@@ -353,7 +353,7 @@ export function PlatformPreview({ caption, selectedPlatforms }: PlatformPreviewP
                     </Badge>
                   </div>
 
-                  <div className="aspect-9/16 max-h-96 bg-zinc-900 flex items-center justify-center">
+                  <div className="aspect-[9/16] max-h-96 bg-zinc-900 flex items-center justify-center">
                     <div className="text-center text-zinc-700">
                       <TiktokLogo className="w-16 h-16 mx-auto mb-2" weight="thin" />
                       <p className="text-sm">Vertical Video Preview</p>

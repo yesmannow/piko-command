@@ -3,8 +3,6 @@
  * Provides consistent logging across the application with environment-aware behavior
  */
 
-type LogLevel = 'info' | 'warn' | 'error' | 'debug';
-
 interface LogContext {
   component?: string;
   action?: string;

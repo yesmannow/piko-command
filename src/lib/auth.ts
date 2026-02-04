@@ -35,16 +35,16 @@ export interface AuthConfig {
 }
 
 export const AuthService = {
-  updateConfig(config: AuthConfig) {
+  updateConfig() {
     console.warn('AuthService is deprecated - OAuth features not implemented')
   },
   
-  initiateOAuth(platform: keyof AuthConfig) {
+  initiateOAuth() {
     console.warn('AuthService is deprecated - OAuth features not implemented')
     throw new Error('OAuth is not implemented')
   },
   
-  async handleCallback(code: string, state: string): Promise<{ platform: string; credentials: any }> {
+  async handleCallback(): Promise<{ platform: string; credentials: unknown }> {
     console.warn('AuthService is deprecated - OAuth features not implemented')
     throw new Error('OAuth is not implemented')
   }
