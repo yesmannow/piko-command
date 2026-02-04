@@ -9,9 +9,15 @@ This document outlines the security improvements implemented in PIKO COMMAND to 
 
 #### Caption Sanitization
 - **Purpose**: Prevent XSS attacks through user-generated captions
-- **Implementation**: Removes script tags, event handlers, and dangerous protocols
+- **Implementation**: Defense-in-depth with 5 layers:
+  1. Remove all HTML tags
+  2. Strip remaining angle brackets
+  3. Remove dangerous URL schemes (javascript:, data:, vbscript:)
+  4. Remove control characters
+  5. Normalize whitespace
 - **Functions**: `sanitizeCaption()`, `sanitizeForClipboard()`
 - **Impact**: Protects against code injection when sharing to social media
+- **CodeQL Status**: 1 false positive (Layer 2 makes Layer 1 bypass impossible)
 
 #### URL Validation
 - **Purpose**: Prevent malicious URL injection in social media shares

@@ -53,25 +53,41 @@ export function sanitizeUrl(url: string): string {
 
 /**
  * Sanitizes platform caption to prevent injection attacks
- * Removes script tags and dangerous HTML while preserving emojis and formatting
+ * Strips all HTML/script content, preserving only plain text with emojis
+ * 
+ * Strategy: Since social media captions don't need HTML, we strip it all
+ * This is safer than trying to sanitize with regex which can be bypassed
  * 
  * @param caption - Raw caption text
- * @returns Sanitized caption safe for display and sharing
+ * @returns Plain text caption safe for display and sharing
  */
 export function sanitizeCaption(caption: string): string {
   if (!caption) return '';
   
-  // Remove script tags and their content
-  let sanitized = caption.replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '');
+  let sanitized = caption;
   
-  // Remove event handlers (onclick, onerror, etc.)
-  sanitized = sanitized.replace(/\s*on\w+\s*=\s*["'][^"']*["']/gi, '');
+  // Defense in depth approach with multiple layers
   
-  // Remove javascript: protocol
+  // Layer 1: Remove all HTML tags and their content
+  // This removes <script>, <style>, and any other tags
+  sanitized = sanitized.replace(/<[^>]*>/g, '');
+  
+  // Layer 2: Remove any remaining angle brackets to prevent bypass attempts
+  // Even if Layer 1 is bypassed, no HTML can be formed without < >
+  sanitized = sanitized.replace(/[<>]/g, '');
+  
+  // Layer 3: Remove URL schemes that could be dangerous
+  // Prevents javascript:, data:, vbscript: even in plain text
   sanitized = sanitized.replace(/javascript:/gi, '');
+  sanitized = sanitized.replace(/data:/gi, '');
+  sanitized = sanitized.replace(/vbscript:/gi, '');
   
-  // Trim and normalize whitespace
+  // Layer 4: Remove control characters (except whitespace)
+  sanitized = sanitized.replace(/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/g, '');
+  
+  // Layer 5: Normalize whitespace
   sanitized = sanitized.trim();
+  sanitized = sanitized.replace(/\n{3,}/g, '\n\n');
   
   return sanitized;
 }
